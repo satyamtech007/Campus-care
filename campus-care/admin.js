@@ -89,26 +89,24 @@ document.addEventListener('DOMContentLoaded', () => {
 function initThemeToggle() {
   const themeToggleBtn = document.getElementById('themeToggleBtn');
   if (!themeToggleBtn) return;
-  const toggleText = themeToggleBtn.querySelector('.theme-toggle-text');
 
   function updateToggleUI(theme) {
-    if (toggleText) {
-      toggleText.textContent = theme === 'dark' ? 'Light' : 'Dark';
-    }
-    themeToggleBtn.setAttribute('aria-label', theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode');
-    themeToggleBtn.setAttribute('title', theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode');
+    const label = theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode';
+    themeToggleBtn.setAttribute('aria-label', label);
+    themeToggleBtn.setAttribute('title', label);
   }
 
   const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
   updateToggleUI(currentTheme);
 
-  themeToggleBtn.addEventListener('click', () => {
+  themeToggleBtn.addEventListener('click', (e) => {
+    e.preventDefault();
     const active = document.documentElement.getAttribute('data-theme') || 'light';
     const nextTheme = active === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', nextTheme);
     try {
       localStorage.setItem('campusCare_theme', nextTheme);
-    } catch (e) {}
+    } catch (err) {}
     updateToggleUI(nextTheme);
   });
 }
