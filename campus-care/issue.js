@@ -63,10 +63,42 @@ const toastContainer = document.getElementById('toastContainer');
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+  initThemeToggle();
+
   // Initialize realistic demo reports if visiting for the first time
   initializeDemoReportsIfEmpty();
   renderRecentIssues();
 });
+
+/**
+ * Theme Toggle Functionality
+ */
+function initThemeToggle() {
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  if (!themeToggleBtn) return;
+  const toggleText = themeToggleBtn.querySelector('.theme-toggle-text');
+
+  function updateToggleUI(theme) {
+    if (toggleText) {
+      toggleText.textContent = theme === 'dark' ? 'Light' : 'Dark';
+    }
+    themeToggleBtn.setAttribute('aria-label', theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode');
+    themeToggleBtn.setAttribute('title', theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode');
+  }
+
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  updateToggleUI(currentTheme);
+
+  themeToggleBtn.addEventListener('click', () => {
+    const active = document.documentElement.getAttribute('data-theme') || 'light';
+    const nextTheme = active === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    try {
+      localStorage.setItem('campusCare_theme', nextTheme);
+    } catch (e) {}
+    updateToggleUI(nextTheme);
+  });
+}
 
 /* ==========================================================================
    Demo Data Initialization
