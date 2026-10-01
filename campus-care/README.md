@@ -46,6 +46,10 @@ On college campuses, lost-and-found items and infrastructure issues (such as ele
   - Unclaimed lost and found items older than 30 days are automatically marked as `Expired` (campus issues are excluded).
 - **First-Visit Demo Data**:
   - Automatically loads 5 realistic sample reports on first visit without overwriting user data.
+- **Dark & Light Mode Theme Toggle**:
+  - Accessible header toggle button across every page (login selection, student login, admin login, student reporting pages, tracking status, and the admin dashboard) with clean SVG icons, dynamic text ("Dark" / "Light"), and smooth color transitions under 250ms.
+  - Full CSS variable design system across both themes for backgrounds, cards, typography, borders, inputs, buttons, navigation, tables, modals, overlays, and status badges.
+  - Automatically respects the user's system dark/light preference on first visit and persists user selection in `localStorage` (`campusCare_theme`), initialized with an inline `<head>` script to prevent theme flashing (FOUC).
 - **Responsive Mobile-First Design**:
   - Fully responsive across mobile (320px+), tablet, and desktop viewports with accessible $\ge 44\text{px}$ touch targets, collapsible navigation, and responsive stacked cards in the admin dashboard.
 
@@ -113,7 +117,7 @@ If you want to clear custom reports and restore the original 5 demo records:
 - **Structure**: Semantic HTML5 with accessibility attributes (`aria-expanded`, mobile viewports, semantic landmarks).
 - **Styling**: Vanilla CSS3 using custom CSS variables (Design System tokens), CSS Grid, and Flexbox for responsiveness.
 - **Logic**: Vanilla JavaScript (ES6+ Modules, DOM APIs, Regular Expressions, Date manipulation).
-- **Persistence**: Browser `localStorage` for cross-page report storage and `sessionStorage` for active user session management.
+- **Persistence**: Browser `localStorage` for cross-page report storage (`campusCare_reports`) and theme preference (`campusCare_theme`), and `sessionStorage` for active user session management.
 
 ---
 
