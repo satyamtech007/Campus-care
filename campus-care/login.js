@@ -10,12 +10,12 @@ const STORAGE_KEY_REPORTS = 'campusCare_reports';
 // Demo Credentials Store
 const DEMO_ACCOUNTS = {
   student: [
-    { username: 'student', password: 'student123', name: 'Alex Smith (21CS042)', role: 'student' },
-    { username: 'alex', password: '1234', name: 'Alex Smith (21CS042)', role: 'student' }
+    { username: 'student', password: 'CampusCare@Student26', name: 'Alex Smith (21CS042)', role: 'student' },
+    { username: 'alex', password: 'CampusCare@Student26', name: 'Alex Smith (21CS042)', role: 'student' }
   ],
   admin: [
-    { username: 'admin', password: 'admin123', name: 'Campus Care Administrator', role: 'admin' },
-    { username: 'admin2', password: 'admin123', name: 'Facilities Admin Officer', role: 'admin' }
+    { username: 'admin', password: 'CampusCare@Admin26', name: 'Campus Care Administrator', role: 'admin' },
+    { username: 'admin2', password: 'CampusCare@Admin26', name: 'Facilities Admin Officer', role: 'admin' }
   ]
 };
 
@@ -322,7 +322,7 @@ if (fillStudentDemoBtn) {
   fillStudentDemoBtn.addEventListener('click', () => {
     setRole('student');
     if (loginUsernameInput) loginUsernameInput.value = 'student';
-    if (loginPasswordInput) loginPasswordInput.value = 'student123';
+    if (loginPasswordInput) loginPasswordInput.value = 'CampusCare@Student26';
     clearErrors();
     showToast('Filled Student demo credentials', 'info');
   });
@@ -332,7 +332,7 @@ if (fillAdminDemoBtn) {
   fillAdminDemoBtn.addEventListener('click', () => {
     setRole('admin');
     if (loginUsernameInput) loginUsernameInput.value = 'admin';
-    if (loginPasswordInput) loginPasswordInput.value = 'admin123';
+    if (loginPasswordInput) loginPasswordInput.value = 'CampusCare@Admin26';
     clearErrors();
     showToast('Filled Admin demo credentials', 'info');
   });

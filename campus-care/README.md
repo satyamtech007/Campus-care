@@ -72,12 +72,12 @@ The portal supports distinct lifecycle statuses tailored to report types:
 These hardcoded accounts are available for demonstration and testing:
 
 ### Student Accounts
-- **Username**: `student` &bull; **Password**: `student123` *(Alex Smith - 21CS042)*
-- **Username**: `alex` &bull; **Password**: `1234` *(Alex Smith - 21CS042)*
+- **Username**: `student` &bull; **Password**: `CampusCare@Student26` *(Alex Smith - 21CS042)*
+- **Username**: `alex` &bull; **Password**: `CampusCare@Student26` *(Alex Smith - 21CS042)*
 
 ### Admin Accounts
-- **Username**: `admin` &bull; **Password**: `admin123` *(Campus Care Administrator)*
-- **Username**: `admin2` &bull; **Password**: `admin123` *(Facilities Admin Officer)*
+- **Username**: `admin` &bull; **Password**: `CampusCare@Admin26` *(Campus Care Administrator)*
+- **Username**: `admin2` &bull; **Password**: `CampusCare@Admin26` *(Facilities Admin Officer)*
 
 > *Note: These are simulated client-side accounts for demo purposes.*
 
