@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Care - Login</title>
+  <meta name="description" content="Campus Care portal login. Choose Student Login or Admin Login to continue.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page-body">
+  <!-- Header / Brand -->
+  <header class="site-header">
+    <div class="header-container" style="justify-content: center;">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">Campus Care</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-wrapper" style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">
+    
+    <!-- Unauthorized alert if redirected from admin page -->
+    <div id="authAlert" class="auth-alert-box" style="display: none; margin-bottom: 1.5rem;"></div>
+
+    <!-- Portal Selection View -->
+    <div id="portalSelectionView" class="portal-selection-container">
+      <div class="selection-hero" style="text-align: center; margin-bottom: 2rem;">
+        <h1 class="page-title" style="font-size: 2rem; margin-bottom: 0.5rem;">Select Your Portal</h1>
+        <p class="page-description" style="font-size: 1rem;">Choose your role below to access campus services</p>
+      </div>
+
+      <div class="portal-cards-grid">
+        <!-- Student Login Choice Card -->
+        <div class="portal-choice-card" id="chooseStudentCard" role="button" tabindex="0">
+          <div class="choice-icon bg-primary-soft">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>
+          </div>
+          <h2 class="choice-title">Student Login</h2>
+          <p class="choice-desc">Report lost items, register found items, log campus maintenance issues, and track live status updates.</p>
+          <button type="button" class="btn btn-primary choice-btn" id="openStudentLoginBtn">
+            <span>Continue as Student</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+
+        <!-- Admin Login Choice Card -->
+        <div class="portal-choice-card" id="chooseAdminCard" role="button" tabindex="0">
+          <div class="choice-icon" style="background: #eef2ff; color: #4338ca;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="8.5" cy="7" r="4"/>
+              <line x1="20" y1="8" x2="20" y2="14"/>
+              <line x1="23" y1="11" x2="17" y2="11"/>
+            </svg>
+          </div>
+          <h2 class="choice-title">Admin Login</h2>
+          <p class="choice-desc">Manage all reports, verify confidential claim details, update issue statuses with remarks, and close reports.</p>
+          <button type="button" class="btn btn-secondary choice-btn" id="openAdminLoginBtn">
+            <span>Continue as Admin</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Form View (Hidden Initially or switched) -->
+    <div id="loginFormView" class="auth-container" style="display: none; max-width: 480px; margin: 0 auto;">
+      <div class="form-card auth-card">
+        <!-- Back to Selection Link -->
+        <button type="button" class="btn-back-selection" id="backToSelectionBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Back to Portal Selection</span>
+        </button>
+
+        <!-- Dynamic Auth Header -->
+        <div class="auth-header">
+          <div class="icon-circle bg-primary-soft" id="formRoleIcon" style="width: 52px; height: 52px; margin: 0 auto 1rem auto;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <h1 class="page-title" id="formTitleText" style="font-size: 1.7rem; margin-bottom: 0.35rem;">Student Login</h1>
+          <p class="page-description" id="formSubtext" style="font-size: 0.9rem;">Sign in with your student credentials</p>
+        </div>
+
+        <!-- Role Toggle Tabs -->
+        <div class="role-selector" role="radiogroup" aria-label="Choose Login Role">
+          <button type="button" class="role-tab active" id="tabStudentBtn" data-role="student">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            <span>Student</span>
+          </button>
+          <button type="button" class="role-tab" id="tabAdminBtn" data-role="admin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            <span>Admin</span>
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="portalLoginForm" novalidate>
+          <input type="hidden" id="activeRole" name="role" value="student">
+
+          <!-- Username Input -->
+          <div class="form-group" id="group-loginUsername">
+            <label for="loginUsername">Username / ID <span class="req">*</span></label>
+            <div class="input-wrapper">
+              <input 
+                type="text" 
+                id="loginUsername" 
+                name="username" 
+                placeholder="e.g. student or 21CS042"
+                autocomplete="username"
+                required
+              >
+            </div>
+            <span class="error-msg" id="err-loginUsername"></span>
+          </div>
+
+          <!-- Password Input -->
+          <div class="form-group" id="group-loginPassword">
+            <label for="loginPassword">Password <span class="req">*</span></label>
+            <div class="input-wrapper">
+              <input 
+                type="password" 
+                id="loginPassword" 
+                name="password" 
+                placeholder="Enter password"
+                autocomplete="current-password"
+                required
+              >
+            </div>
+            <span class="error-msg" id="err-loginPassword"></span>
+          </div>
+
+          <!-- Error Alert Inline Box -->
+          <div id="loginErrorMsg" class="track-error-inline" style="display: none; margin-bottom: 1.25rem;"></div>
+
+          <button type="submit" id="loginSubmitBtn" class="btn btn-primary" style="width: 100%; height: 48px; font-size: 1rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            <span id="submitBtnText">Sign In as Student</span>
+          </button>
+        </form>
+
+        <!-- Demo Accounts Box -->
+        <div class="demo-creds-card">
+          <div class="demo-creds-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Demo Accounts (Click to auto-fill)
+          </div>
+          <div class="demo-creds-grid" id="demoCredsGrid">
+            <button type="button" class="demo-chip" id="fillStudentDemoBtn">
+              <span class="chip-role">Student</span>
+              <code>student / student123</code>
+            </button>
+            <button type="button" class="demo-chip" id="fillAdminDemoBtn">
+              <span class="chip-role">Admin</span>
+              <code>admin / admin123</code>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <footer class="site-footer">
+    <p>&copy; Campus Care Portal &bull; Centralized Issue & Lost/Found Management System</p>
+  </footer>
+
+  <script src="login.js"></script>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Care - Report Campus Issue</title>
+  <meta name="description" content="Report infrastructure, electricity, plumbing, cleanliness, or Wi-Fi issues across campus with instant automated department assignment.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    (function() {
+      try {
+        var raw = localStorage.getItem('campusCare_session') || sessionStorage.getItem('campusCare_session');
+        var session = raw ? JSON.parse(raw) : null;
+        if (!session) {
+          window.location.replace('index.html');
+        }
+      } catch (e) {
+        window.location.replace('index.html');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">Campus Care</span>
+        </div>
+      </div>
+
+      <!-- Mobile Menu Toggle Button -->
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Navigation Tabs (Student Only) -->
+      <nav class="site-nav" id="siteNav" aria-label="Main Navigation">
+        <a href="lost.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span>Report Lost Item</span>
+        </a>
+        <a href="found.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+          <span>Report Found Item</span>
+        </a>
+        <a href="issue.html" class="nav-link active" aria-current="page">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>Report Campus Issue</span>
+        </a>
+        <a href="track.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+          </svg>
+          <span>Track Status</span>
+        </a>
+      </nav>
+
+      <!-- Logout Button (No Admin Links) -->
+      <div class="header-badges">
+        <button type="button" class="btn btn-secondary btn-logout-user" id="userLogoutBtn" title="Log Out">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-wrapper">
+    <!-- Page Hero -->
+    <section class="page-hero">
+      <h1 class="page-title">Report a Campus Issue</h1>
+      <p class="page-description">
+        Encountered a maintenance, cleanliness, or connectivity problem? Submit details for immediate automated routing to the responsible campus department.
+      </p>
+    </section>
+
+    <div class="portal-grid">
+      <!-- Report Form Card -->
+      <div class="form-card">
+        <div class="card-header">
+          <div class="icon-circle bg-primary-soft">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div>
+            <h2 class="card-title">Campus Issue Details</h2>
+            <p class="card-caption">All required fields are marked with <span class="req">*</span></p>
+          </div>
+        </div>
+
+        <form id="campusIssueForm" novalidate>
+          <!-- Category Selection -->
+          <div class="form-group" id="group-category">
+            <label for="category">Issue Category <span class="req">*</span></label>
+            <div class="input-wrapper select-wrapper">
+              <select id="category" name="category">
+                <option value="">-- Select Category --</option>
+                <option value="Electricity">Electricity (Power cuts, faulty switch, lights, fan, projector)</option>
+                <option value="Plumbing">Plumbing (Water leakage, tap malfunction, washroom drain)</option>
+                <option value="Cleanliness">Cleanliness (Trash bins, corridor cleaning, washroom hygiene)</option>
+                <option value="Furniture">Furniture (Broken bench, chair, damaged desk, whiteboard)</option>
+                <option value="Wi-Fi">Wi-Fi (No signal, slow speed, portal authentication error)</option>
+                <option value="Other">Other (General campus facilities, AC, signage, doors/windows)</option>
+              </select>
+            </div>
+            <div id="deptPreview" class="dept-preview-badge" style="display: none;">
+              <span class="dept-preview-label">Routing to:</span>
+              <strong id="deptPreviewName">-</strong>
+            </div>
+            <span class="error-msg" id="err-category"></span>
+          </div>
+
+          <!-- Location -->
+          <div class="form-group" id="group-location">
+            <label for="location">Location / Room Number <span class="req">*</span></label>
+            <div class="input-wrapper">
+              <input 
+                type="text" 
+                id="location" 
+                name="location" 
+                placeholder="e.g. Science Block 2nd Floor Lab 204, Library 3rd Floor, Hostel-C Room 102"
+                autocomplete="off"
+              >
+            </div>
+            <div class="field-hint">Specify exact building, floor, room number, or landmark to expedite dispatch.</div>
+            <span class="error-msg" id="err-location"></span>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group" id="group-description">
+            <label for="description">Detailed Description of Issue <span class="req">*</span></label>
+            <div class="input-wrapper">
+              <textarea 
+                id="description" 
+                name="description" 
+                rows="4" 
+                placeholder="Explain the problem clearly (e.g. Ceiling fan making loud buzzing noise and spark observed near switchboard)..."
+              ></textarea>
+            </div>
+            <div class="field-hint">Include symptoms, when the issue started, and urgency indicators.</div>
+            <span class="error-msg" id="err-description"></span>
+          </div>
+
+          <!-- Student Details & Phone Number -->
+          <div class="form-row">
+            <div class="form-group" id="group-studentName">
+              <label for="studentName">Student Name / Roll No. (Optional)</label>
+              <div class="input-wrapper">
+                <input 
+                  type="text" 
+                  id="studentName" 
+                  name="studentName" 
+                  placeholder="e.g. Jordan Lee (23CS114)"
+                  autocomplete="name"
+                >
+              </div>
+            </div>
+            <div class="form-group" id="group-phoneNumber">
+              <label for="phoneNumber">Phone Number <span class="req">*</span></label>
+              <div class="input-wrapper">
+                <input 
+                  type="tel" 
+                  id="phoneNumber" 
+                  name="phoneNumber" 
+                  inputmode="numeric"
+                  pattern="[0-9]{10}"
+                  maxlength="10"
+                  placeholder="e.g. 9876543210"
+                  autocomplete="tel"
+                  required
+                >
+              </div>
+              <span class="error-msg" id="err-phoneNumber"></span>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="form-actions">
+            <button type="submit" id="submitBtn" class="btn btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+              </svg>
+              <span>Submit & Assign Issue</span>
+            </button>
+            <button type="reset" id="resetBtn" class="btn btn-secondary">
+              <span>Clear Form</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Column: Auto-Routing Map & Recent Issues -->
+      <div class="info-sidebar">
+        <!-- Automated Routing Card -->
+        <div class="info-card">
+          <h3 class="info-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 3 21 3 21 8"></polyline>
+              <line x1="4" y1="20" x2="21" y2="3"></line>
+              <polyline points="21 16 21 21 16 21"></polyline>
+              <line x1="15" y1="15" x2="21" y2="21"></line>
+              <line x1="4" y1="4" x2="9" y2="9"></line>
+            </svg>
+            Automated Department Routing
+          </h3>
+          <ul class="dept-routing-list">
+            <li>
+              <strong>Electricity</strong>
+              <span>Electrical Maintenance & Power Division</span>
+            </li>
+            <li>
+              <strong>Plumbing</strong>
+              <span>Water Supply & Plumbing Department</span>
+            </li>
+            <li>
+              <strong>Cleanliness</strong>
+              <span>Sanitation & Housekeeping Team</span>
+            </li>
+            <li>
+              <strong>Furniture</strong>
+              <span>Infrastructure & Carpentry Division</span>
+            </li>
+            <li>
+              <strong>Wi-Fi</strong>
+              <span>IT Support & NOC Operations</span>
+            </li>
+            <li>
+              <strong>Other</strong>
+              <span>Campus Facilities & Administration</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Recent Campus Issues Panel -->
+        <div class="info-card" id="recentIssuesCard">
+          <div class="recent-header">
+            <h3 class="info-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              Recent Campus Issues
+            </h3>
+            <span class="count-pill" id="issueCountBadge">0</span>
+          </div>
+          <div id="recentIssuesList" class="recent-list">
+            <!-- Dynamically populated from localStorage -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Success Confirmation Modal -->
+  <div class="modal-overlay" id="successModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-badge-success">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+
+      <h2 class="modal-title">Campus Issue Logged & Assigned!</h2>
+      <p class="modal-subtitle">Your report was opened and immediately assigned to the responsible department.</p>
+
+      <div class="report-summary-box">
+        <div class="summary-row">
+          <span class="summary-label">Issue ID</span>
+          <div class="copyable-id">
+            <strong id="modalReportId">ISSUE-00000</strong>
+            <button type="button" class="btn-copy" id="copyIdBtn" title="Copy Issue ID">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-label">Current Status</span>
+          <span class="badge badge-assigned" id="modalStatusBadge">Assigned</span>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-label">Assigned Department</span>
+          <span id="modalDepartment" class="summary-value" style="color: var(--color-primary); font-weight: 700;">-</span>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-label">Category</span>
+          <span id="modalCategory" class="summary-value">-</span>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-label">Location</span>
+          <span id="modalLocation" class="summary-value">-</span>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button type="button" class="btn btn-primary" id="modalTrackBtn" style="flex: 1;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span>Track Live Status</span>
+        </button>
+        <button type="button" class="btn btn-secondary" id="modalCloseBtn" style="flex: 1;">
+          <span>Done & Report Another</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <footer class="site-footer">
+    <p>&copy; Campus Care Portal &bull; Centralized Issue & Lost/Found Management System</p>
+  </footer>
+
+  <script src="issue.js"></script>
+</body>
+</html>

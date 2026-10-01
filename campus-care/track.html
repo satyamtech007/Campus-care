@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Care - Track Report Status</title>
+  <meta name="description" content="Track live status and complete update history of your campus lost and found reports.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    (function() {
+      try {
+        var raw = localStorage.getItem('campusCare_session') || sessionStorage.getItem('campusCare_session');
+        var session = raw ? JSON.parse(raw) : null;
+        if (!session) {
+          window.location.replace('index.html');
+        }
+      } catch (e) {
+        window.location.replace('index.html');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">Campus Care</span>
+        </div>
+      </div>
+
+      <!-- Mobile Menu Toggle Button -->
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Navigation Tabs (Student Only) -->
+      <nav class="site-nav" id="siteNav" aria-label="Main Navigation">
+        <a href="lost.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span>Report Lost Item</span>
+        </a>
+        <a href="found.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+          <span>Report Found Item</span>
+        </a>
+        <a href="issue.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>Report Campus Issue</span>
+        </a>
+        <a href="track.html" class="nav-link active" aria-current="page">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+          </svg>
+          <span>Track Status</span>
+        </a>
+      </nav>
+
+      <!-- Logout Button (No Admin Links) -->
+      <div class="header-badges">
+        <button type="button" class="btn btn-secondary btn-logout-user" id="userLogoutBtn" title="Log Out">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-wrapper">
+    <!-- Page Hero -->
+    <section class="page-hero">
+      <h1 class="page-title">Track Report Status</h1>
+      <p class="page-description">
+        Enter your unique Report ID to see live progress, verified matches, and the complete timeline of status updates.
+      </p>
+    </section>
+
+    <!-- Search Section -->
+    <section class="track-search-section">
+      <div class="form-card track-search-card">
+        <form id="trackForm" novalidate>
+          <label for="trackInput" class="track-label">Enter Report Tracking ID</label>
+          <div class="track-input-group">
+            <div class="track-input-wrapper">
+              <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input 
+                type="text" 
+                id="trackInput" 
+                name="reportId"
+                placeholder="e.g. ISSUE-84920, LOST-48291, FOUND-10293" 
+                autocomplete="off"
+                spellcheck="false"
+                required
+              >
+              <button type="button" id="clearSearchBtn" class="clear-btn" title="Clear input" aria-label="Clear input" style="display: none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <button type="submit" id="trackSubmitBtn" class="btn btn-primary btn-track">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <span>Track Report</span>
+            </button>
+          </div>
+
+          <!-- Quick access suggestions for stored IDs -->
+          <div id="quickSuggestions" class="quick-suggestions-row" style="display: none;">
+            <span class="quick-label">Your recent reports:</span>
+            <div id="quickPillsList" class="quick-pills-list"></div>
+          </div>
+
+          <!-- Inline Input Error message -->
+          <div id="trackInputError" class="track-error-inline" style="display: none;"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Error / Not Found State Card -->
+    <div id="notFoundState" class="not-found-card" style="display: none;">
+      <div class="not-found-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <h3 class="not-found-title">Report Not Found</h3>
+      <p class="not-found-desc" id="notFoundMessage">No report was found matching the entered ID.</p>
+      <div class="not-found-tips">
+        <strong>Helpful tips:</strong>
+        <ul>
+          <li>Check for typos in the Report ID (e.g. <code>ISSUE-12345</code>, <code>LOST-12345</code>, or <code>FOUND-12345</code>).</li>
+          <li>Make sure the report was submitted on this device or portal.</li>
+          <li>You can report a <a href="lost.html" class="inline-link">Lost Item</a>, <a href="found.html" class="inline-link">Found Item</a>, or <a href="issue.html" class="inline-link">Campus Issue</a>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Tracking Results Section -->
+    <div id="trackResultContainer" class="track-result-container" style="display: none;">
+      <div class="portal-grid">
+        <!-- Main Result Column -->
+        <div class="track-main-column">
+          <!-- Current Status Banner Card -->
+          <div class="form-card status-overview-card">
+            <div class="status-card-header">
+              <div>
+                <span class="status-subtitle" id="resultSubtitle">Report Summary</span>
+                <h2 class="status-item-title" id="resultItemName">-</h2>
+                <div class="id-tag-row">
+                  <span class="id-badge-code">
+                    <span id="resultReportId">ID-00000</span>
+                    <button type="button" class="btn-copy" id="copyResultIdBtn" title="Copy Report ID">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                  </span>
+                  <span id="resultCategoryBadge" class="cat-pill">-</span>
+                  <span id="resultTypeBadge" class="system-tag" style="font-size: 0.72rem;">-</span>
+                </div>
+              </div>
+
+              <!-- Current Status Display -->
+              <div class="current-status-display">
+                <span class="status-label-top">Current Status</span>
+                <span id="resultStatusBadge" class="badge badge-open badge-xl">Open</span>
+              </div>
+            </div>
+
+            <!-- Meta details grid -->
+            <div class="result-details-grid">
+              <div class="detail-cell" id="deptCell" style="display: none;">
+                <span class="detail-label">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                  Assigned Department
+                </span>
+                <span class="detail-val" id="resultDepartment" style="color: var(--color-primary);">-</span>
+              </div>
+
+              <div class="detail-cell">
+                <span class="detail-label" id="lblLocation">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/></svg>
+                  Location
+                </span>
+                <span class="detail-val" id="resultLocation">-</span>
+              </div>
+
+              <div class="detail-cell">
+                <span class="detail-label" id="lblDate">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Date
+                </span>
+                <span class="detail-val" id="resultDateLost">-</span>
+              </div>
+
+              <div class="detail-cell">
+                <span class="detail-label">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  Reported By
+                </span>
+                <span class="detail-val" id="resultStudentName">-</span>
+              </div>
+
+              <div class="detail-cell">
+                <span class="detail-label">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Submission Time
+                </span>
+                <span class="detail-val" id="resultCreatedAt">-</span>
+              </div>
+            </div>
+
+            <!-- Description box -->
+            <div class="result-desc-block">
+              <span class="detail-label">Description & Details:</span>
+              <p class="desc-text" id="resultDescription">-</p>
+            </div>
+          </div>
+
+          <!-- Timeline / History Card -->
+          <div class="form-card history-card">
+            <div class="card-header">
+              <div class="icon-circle bg-primary-soft">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <div>
+                <h2 class="card-title">Status Update History</h2>
+                <p class="card-caption">Complete chronological log of all status transitions & remarks</p>
+              </div>
+            </div>
+
+            <!-- Dynamic Timeline -->
+            <div id="timelineContainer" class="history-timeline">
+              <!-- Rendered via track.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Status Guide & Next Steps -->
+        <div class="info-sidebar">
+          <!-- Status Meaning Card -->
+          <div class="info-card">
+            <h3 class="info-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              Status Legend
+            </h3>
+            <ul class="status-legend-list">
+              <li>
+                <span class="badge badge-open">Open</span>
+                <span class="legend-desc">Report registered and pending Admin review or match scan.</span>
+              </li>
+              <li>
+                <span class="badge badge-match">Match Found</span>
+                <span class="legend-desc">Potential matching item turned into campus office.</span>
+              </li>
+              <li>
+                <span class="badge badge-in-progress">In Progress</span>
+                <span class="legend-desc">Campus issues that the Admin is working on.</span>
+              </li>
+              <li>
+                <span class="badge badge-returned">Returned</span>
+                <span class="legend-desc">Item successfully identified and handed over by Admin.</span>
+              </li>
+              <li>
+                <span class="badge badge-resolved">Resolved</span>
+                <span class="legend-desc">Case closed and archived by Admin.</span>
+              </li>
+              <li>
+                <span class="badge badge-expired">Expired</span>
+                <span class="legend-desc">Unclaimed item after 30 days, handed to administration.</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Help Card -->
+          <div class="info-card">
+            <h3 class="info-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              Need Urgent Help?
+            </h3>
+            <p class="sidebar-help-text">
+              Contact the campus security desk
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <footer class="site-footer">
+    <p>&copy; Campus Care Portal &bull; Centralized Issue & Lost/Found Management System</p>
+  </footer>
+
+  <script src="track.js"></script>
+</body>
+</html>
