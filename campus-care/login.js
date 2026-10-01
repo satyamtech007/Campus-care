@@ -15,7 +15,7 @@ const DEMO_ACCOUNTS = {
   ],
   admin: [
     { username: 'admin', password: 'admin123', name: 'Campus Care Administrator', role: 'admin' },
-    { username: 'staff', password: 'staff123', name: 'Facilities Admin Officer', role: 'admin' }
+    { username: 'admin2', password: 'admin123', name: 'Facilities Admin Officer', role: 'admin' }
   ]
 };
 

@@ -77,7 +77,7 @@ These hardcoded accounts are available for demonstration and testing:
 
 ### Admin Accounts
 - **Username**: `admin` &bull; **Password**: `admin123` *(Campus Care Administrator)*
-- **Username**: `staff` &bull; **Password**: `staff123` *(Facilities Admin Officer)*
+- **Username**: `admin2` &bull; **Password**: `admin123` *(Facilities Admin Officer)*
 
 > *Note: These are simulated client-side accounts for demo purposes.*
 
