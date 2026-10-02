@@ -53,7 +53,7 @@ On college campuses, lost-and-found items and infrastructure issues (such as ele
   - Persists the selected theme in `localStorage` (`campusCare_theme`) across sessions.
   - Inline `<head>` script applies the saved or system theme instantly to prevent theme flashing (FOUC).
 - **Responsive Mobile-First Design**:
-  - Fully responsive across mobile (320px+), tablet, and desktop viewports with accessible $\ge 44\text{px}$ touch targets, collapsible navigation, and responsive stacked cards in the admin dashboard.
+  - Fully responsive across mobile (320px+), tablet, and desktop viewports with accessible at least 44px touch targets, collapsible navigation, and responsive stacked cards in the admin dashboard.
 
 ---
 
