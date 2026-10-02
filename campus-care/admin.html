@@ -39,27 +39,29 @@
 <body class="admin-dashboard-body">
   <!-- Header / Navigation -->
   <header class="site-header">
-    <div class="header-container">
-      <div class="brand">
-        <div class="brand-icon" style="background: linear-gradient(135deg, #1e40af, #7c3aed);">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-            <circle cx="8.5" cy="7" r="4"></circle>
-            <polyline points="17 11 19 13 23 9"></polyline>
-          </svg>
+    <div class="header-container admin-header-container">
+      <div class="admin-header-left">
+        <div class="brand">
+          <div class="brand-icon" style="background: linear-gradient(135deg, #1e40af, #7c3aed);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <polyline points="17 11 19 13 23 9"></polyline>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">Campus Care</span>
+          </div>
         </div>
-        <div class="brand-text">
-          <span class="brand-title">Campus Care</span>
-        </div>
-      </div>
 
-      <!-- Navigation Tabs (Admin Only) -->
-      <nav class="site-nav" aria-label="Main Navigation">
-        <a href="admin.html" class="nav-link active" aria-current="page">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-          <span>Admin Dashboard</span>
-        </a>
-      </nav>
+        <!-- Navigation Tabs (Admin Only) -->
+        <nav class="site-nav admin-site-nav" aria-label="Main Navigation">
+          <a href="admin.html" class="nav-link active" aria-current="page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span>Admin Dashboard</span>
+          </a>
+        </nav>
+      </div>
 
       <!-- Admin User Bar & Logout -->
       <div class="admin-user-bar">

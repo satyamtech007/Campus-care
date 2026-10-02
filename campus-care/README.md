@@ -47,9 +47,11 @@ On college campuses, lost-and-found items and infrastructure issues (such as ele
 - **First-Visit Demo Data**:
   - Automatically loads 5 realistic sample reports on first visit without overwriting user data.
 - **Dark & Light Mode Theme Toggle**:
-  - Accessible header toggle button across every page (login selection, student login, admin login, student reporting pages, tracking status, and the admin dashboard) with an icon-only round button (sun/moon SVG icon that switches with the theme, no text or emojis) and smooth color transitions under 250ms.
-  - Full CSS variable design system across both themes for backgrounds, cards, typography, borders, inputs, buttons, navigation, tables, modals, overlays, and status badges.
-  - Automatically respects the user's system dark/light preference on first visit and persists user selection in `localStorage` (`campusCare_theme`), initialized with an inline `<head>` script to prevent theme flashing (FOUC).
+  - Round icon-only toggle button in the header across all pages with switching sun and moon SVG icons.
+  - Complete CSS variable design system supporting tailored light and dark themes with smooth transitions.
+  - Automatically follows the user's system color scheme preference on first visit.
+  - Persists the selected theme in `localStorage` (`campusCare_theme`) across sessions.
+  - Inline `<head>` script applies the saved or system theme instantly to prevent theme flashing (FOUC).
 - **Responsive Mobile-First Design**:
   - Fully responsive across mobile (320px+), tablet, and desktop viewports with accessible $\ge 44\text{px}$ touch targets, collapsible navigation, and responsive stacked cards in the admin dashboard.
 

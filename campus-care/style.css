@@ -1959,11 +1959,30 @@ html[data-theme="dark"] .theme-icon-moon {
   background-color: var(--bg-body);
 }
 
+.admin-header-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.admin-site-nav {
+  display: flex;
+  align-items: center;
+}
+
 .admin-user-bar {
   display: flex;
   align-items: center;
   gap: 0.85rem;
   margin-left: auto;
+}
+
+@media (max-width: 860px) {
+  .admin-site-nav {
+    display: flex !important;
+    width: auto !important;
+    order: unset !important;
+  }
 }
 
 @media (max-width: 640px) {
