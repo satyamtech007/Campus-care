@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager - Notes & Files</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons for polished controls -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Main Form Section -->
+        <header class="app-header">
+            <div class="brand-bar">
+                <div class="logo-area">
+                    <i class="fa-solid fa-folder-open brand-icon"></i>
+                    <span class="brand-name">TaskManager</span>
+                    <span class="badge" id="taskCountBadge">8 tasks</span>
+                </div>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="Search tasks...">
+                    </div>
+                    <button class="icon-btn" id="resetBtn" title="Reset to Demo Tasks">
+                        <i class="fa-solid fa-arrow-rotate-left"></i>
+                    </button>
+                </div>
+            </div>
+
+            <form id="taskForm" class="task-form">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="taskTitle" 
+                        class="form-control" 
+                        placeholder="Title goes here.." 
+                        required 
+                        autocomplete="off"
+                    >
+                </div>
+                <div class="input-group">
+                    <textarea 
+                        id="taskDetails" 
+                        class="form-control textarea" 
+                        placeholder="Write your task details here..." 
+                        rows="3"
+                        required
+                    ></textarea>
+                </div>
+                <div class="form-footer">
+                    <button type="submit" class="btn btn-primary" id="createTaskBtn">
+                        Create Task
+                    </button>
+                    <span class="helper-hint">Files are automatically saved as <code>.txt</code> notes</span>
+                </div>
+            </form>
+        </header>
+
+        <!-- Tasks Grid Section -->
+        <main class="tasks-section">
+            <div class="section-meta">
+                <h2 class="section-title">Saved Tasks & Files</h2>
+                <div class="sort-controls">
+                    <span class="sort-label">Sort:</span>
+                    <button class="sort-chip active" data-sort="default">Default</button>
+                    <button class="sort-chip" data-sort="newest">Newest</button>
+                    <button class="sort-chip" data-sort="alpha">A-Z</button>
+                </div>
+            </div>
+
+            <div id="tasksGrid" class="tasks-grid">
+                <!-- Dynamically populated or rendered from JS -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state hidden">
+                <div class="empty-icon"><i class="fa-regular fa-folder-open"></i></div>
+                <h3>No tasks found</h3>
+                <p>Add a new task using the form above or restore original demo tasks.</p>
+                <button class="btn btn-secondary" id="restoreDemoBtn">Restore Demo Tasks</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Read More / Task Detail Modal -->
+    <div id="taskModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <i class="fa-regular fa-file-lines modal-file-icon"></i>
+                    <h3 id="modalTaskTitle" class="modal-title">filename.txt</h3>
+                </div>
+                <button class="close-modal-btn" id="closeModalBtn" aria-label="Close dialog">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="task-metadata">
+                    <span id="modalTaskDate"><i class="fa-regular fa-clock"></i> Just now</span>
+                    <span id="modalTaskLength"><i class="fa-solid fa-text-width"></i> 0 characters</span>
+                </div>
+                <div class="modal-content-box">
+                    <pre id="modalTaskContent" class="task-content-text"></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="downloadTaskBtn">
+                    <i class="fa-solid fa-download"></i> Download .txt
+                </button>
+                <button class="btn btn-secondary" id="copyTaskBtn">
+                    <i class="fa-regular fa-copy"></i> Copy
+                </button>
+                <button class="btn btn-secondary" id="editTaskBtn">
+                    <i class="fa-regular fa-pen-to-square"></i> Edit
+                </button>
+                <button class="btn btn-danger" id="deleteTaskModalBtn">
+                    <i class="fa-solid fa-trash-can"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div id="editModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-pen-to-square"></i> Edit Task</h3>
+                <button class="close-modal-btn" id="closeEditModalBtn" aria-label="Close dialog">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="editTaskForm">
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label class="field-label" for="editTaskTitle">File Name</label>
+                        <input type="text" id="editTaskTitle" class="form-control" required>
+                    </div>
+                    <div class="input-group">
+                        <label class="field-label" for="editTaskDetails">Task Details</label>
+                        <textarea id="editTaskDetails" class="form-control textarea" rows="6" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
