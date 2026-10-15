@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +8,12 @@
   <meta name="description" content="Campus Care portal login. Choose Student Login or Admin Login to continue.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script>
-    (function() {
+    (function () {
       try {
         var savedTheme = localStorage.getItem('campusCare_theme');
         var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -22,15 +25,17 @@
     })();
   </script>
 </head>
+
 <body class="login-page-body">
   <!-- Header / Brand -->
   <header class="site-header">
     <div class="header-container">
       <div class="brand">
         <div class="brand-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            <path d="m9 12 2 2 4-4"/>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="m9 12 2 2 4-4" />
           </svg>
         </div>
         <div class="brand-text">
@@ -38,9 +43,24 @@
         </div>
       </div>
       <div class="header-actions">
-        <button type="button" class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle dark mode" title="Toggle theme">
-          <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-          <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <button type="button" class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle dark mode"
+          title="Toggle theme">
+          <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
         </button>
       </div>
     </div>
@@ -48,7 +68,7 @@
 
   <!-- Main Content Container -->
   <main class="main-wrapper" style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">
-    
+
     <!-- Unauthorized alert if redirected from admin page -->
     <div id="authAlert" class="auth-alert-box" style="display: none; margin-bottom: 1.5rem;"></div>
 
@@ -64,15 +84,19 @@
         <div class="portal-choice-card" id="chooseStudentCard" role="button" tabindex="0">
           <div class="choice-icon bg-primary-soft">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
             </svg>
           </div>
           <h2 class="choice-title">Student Login</h2>
-          <p class="choice-desc">Report lost items, register found items, log campus maintenance issues, and track live status updates.</p>
+          <p class="choice-desc">Report lost items, register found items, log campus maintenance issues, and track live
+            status updates.</p>
           <button type="button" class="btn btn-primary choice-btn" id="openStudentLoginBtn">
             <span>Continue as Student</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
           </button>
         </div>
 
@@ -80,17 +104,21 @@
         <div class="portal-choice-card" id="chooseAdminCard" role="button" tabindex="0">
           <div class="choice-icon" style="background: #eef2ff; color: #4338ca;">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="8.5" cy="7" r="4"/>
-              <line x1="20" y1="8" x2="20" y2="14"/>
-              <line x1="23" y1="11" x2="17" y2="11"/>
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="8.5" cy="7" r="4" />
+              <line x1="20" y1="8" x2="20" y2="14" />
+              <line x1="23" y1="11" x2="17" y2="11" />
             </svg>
           </div>
           <h2 class="choice-title">Admin Login</h2>
-          <p class="choice-desc">Manage all reports, verify confidential claim details, update issue statuses with remarks, and close reports.</p>
+          <p class="choice-desc">Manage all reports, verify confidential claim details, update issue statuses with
+            remarks, and close reports.</p>
           <button type="button" class="btn btn-secondary choice-btn" id="openAdminLoginBtn">
             <span>Continue as Admin</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
           </button>
         </div>
       </div>
@@ -101,30 +129,44 @@
       <div class="form-card auth-card">
         <!-- Back to Selection Link -->
         <button type="button" class="btn-back-selection" id="backToSelectionBtn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
           <span>Back to Portal Selection</span>
         </button>
 
         <!-- Dynamic Auth Header -->
         <div class="auth-header">
-          <div class="icon-circle bg-primary-soft" id="formRoleIcon" style="width: 52px; height: 52px; margin: 0 auto 1rem auto;">
+          <div class="icon-circle bg-primary-soft" id="formRoleIcon"
+            style="width: 52px; height: 52px; margin: 0 auto 1rem auto;">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
           </div>
-          <h1 class="page-title" id="formTitleText" style="font-size: 1.7rem; margin-bottom: 0.35rem;">Student Login</h1>
-          <p class="page-description" id="formSubtext" style="font-size: 0.9rem;">Sign in with your student credentials</p>
+          <h1 class="page-title" id="formTitleText" style="font-size: 1.7rem; margin-bottom: 0.35rem;">Student Login
+          </h1>
+          <p class="page-description" id="formSubtext" style="font-size: 0.9rem;">Sign in with your student credentials
+          </p>
         </div>
 
         <!-- Role Toggle Tabs -->
         <div class="role-selector" role="radiogroup" aria-label="Choose Login Role">
           <button type="button" class="role-tab active" id="tabStudentBtn" data-role="student">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
+            </svg>
             <span>Student</span>
           </button>
           <button type="button" class="role-tab" id="tabAdminBtn" data-role="admin">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="8.5" cy="7" r="4" />
+              <line x1="20" y1="8" x2="20" y2="14" />
+              <line x1="23" y1="11" x2="17" y2="11" />
+            </svg>
             <span>Admin</span>
           </button>
         </div>
@@ -137,14 +179,8 @@
           <div class="form-group" id="group-loginUsername">
             <label for="loginUsername">Username / ID <span class="req">*</span></label>
             <div class="input-wrapper">
-              <input 
-                type="text" 
-                id="loginUsername" 
-                name="username" 
-                placeholder="e.g. student or 21CS042"
-                autocomplete="username"
-                required
-              >
+              <input type="text" id="loginUsername" name="username" placeholder="e.g. student or 21CS042"
+                autocomplete="username" required>
             </div>
             <span class="error-msg" id="err-loginUsername"></span>
           </div>
@@ -153,14 +189,8 @@
           <div class="form-group" id="group-loginPassword">
             <label for="loginPassword">Password <span class="req">*</span></label>
             <div class="input-wrapper">
-              <input 
-                type="password" 
-                id="loginPassword" 
-                name="password" 
-                placeholder="Enter password"
-                autocomplete="current-password"
-                required
-              >
+              <input type="password" id="loginPassword" name="password" placeholder="Enter password"
+                autocomplete="current-password" required>
             </div>
             <span class="error-msg" id="err-loginPassword"></span>
           </div>
@@ -168,8 +198,13 @@
           <!-- Error Alert Inline Box -->
           <div id="loginErrorMsg" class="track-error-inline" style="display: none; margin-bottom: 1.25rem;"></div>
 
-          <button type="submit" id="loginSubmitBtn" class="btn btn-primary" style="width: 100%; height: 48px; font-size: 1rem;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          <button type="submit" id="loginSubmitBtn" class="btn btn-primary"
+            style="width: 100%; height: 48px; font-size: 1rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+              <polyline points="10 17 15 12 10 7" />
+              <line x1="15" y1="12" x2="3" y2="12" />
+            </svg>
             <span id="submitBtnText">Sign In as Student</span>
           </button>
         </form>
@@ -177,7 +212,11 @@
         <!-- Demo Accounts Box -->
         <div class="demo-creds-card">
           <div class="demo-creds-title">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
             Demo Accounts (Click to auto-fill)
           </div>
           <div class="demo-creds-grid" id="demoCredsGrid">
@@ -202,6 +241,11 @@
     <p>&copy; Campus Care Portal &bull; Centralized Issue & Lost/Found Management System</p>
   </footer>
 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-client.js"></script>
   <script src="login.js"></script>
 </body>
+
 </html>
