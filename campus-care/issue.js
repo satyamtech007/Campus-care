@@ -29,9 +29,11 @@ if (navToggle && siteNav) {
 // User Logout handler
 const userLogoutBtn = document.getElementById('userLogoutBtn');
 if (userLogoutBtn) {
-  userLogoutBtn.addEventListener('click', () => {
+  userLogoutBtn.addEventListener('click', async () => {
     localStorage.removeItem('campusCare_session');
     sessionStorage.removeItem('campusCare_session');
+    localStorage.removeItem('campusCare_reports');
+    await CampusCareFirebase.auth.signOut();
     window.location.href = 'index.html?logout=true';
   });
 }
@@ -62,11 +64,14 @@ const issueCountBadge = document.getElementById('issueCountBadge');
 const toastContainer = document.getElementById('toastContainer');
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initThemeToggle();
-
-  // Initialize realistic demo reports if visiting for the first time
-  initializeDemoReportsIfEmpty();
+  try {
+    await CampusCareFirebase.loadMyReports();
+  } catch (error) {
+    showToast('Could not load your reports from Firebase. Please refresh and try again.', 'error');
+    console.error(error);
+  }
   renderRecentIssues();
 });
 
@@ -309,7 +314,6 @@ categorySelect.addEventListener('change', () => {
  * @returns {Array} Array of report objects
  */
 function getStoredReports() {
-  initializeDemoReportsIfEmpty();
   try {
     const data = localStorage.getItem(STORAGE_KEY_REPORTS);
     return data ? JSON.parse(data) : [];
@@ -323,10 +327,8 @@ function getStoredReports() {
  * Saves report to localStorage
  * @param {Object} report 
  */
-function saveReport(report) {
-  const reports = getStoredReports();
-  reports.unshift(report); // Add new reports to top
-  localStorage.setItem(STORAGE_KEY_REPORTS, JSON.stringify(reports));
+async function saveReport(report) {
+  return CampusCareFirebase.createReport(report);
 }
 
 /**
@@ -426,7 +428,7 @@ function clearErrors() {
 /**
  * Handles form submission with automated routing
  */
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   if (!validateForm()) {
@@ -471,8 +473,12 @@ form.addEventListener('submit', (e) => {
     ]
   };
 
-  // Save to localStorage
-  saveReport(newReport);
+  try {
+    await saveReport(newReport);
+  } catch (error) {
+    showToast(error.message || 'Could not save the report. Please try again.', 'error');
+    return;
+  }
 
   // Update UI and show confirmation modal
   showSuccessModal(newReport);

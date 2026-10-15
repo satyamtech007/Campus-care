@@ -7,18 +7,6 @@
 const STORAGE_KEY_SESSION = 'campusCare_session';
 const STORAGE_KEY_REPORTS = 'campusCare_reports';
 
-// Demo Credentials Store
-const DEMO_ACCOUNTS = {
-  student: [
-    { username: 'student', password: 'CampusCare@Student26', name: 'Alex Smith (21CS042)', role: 'student' },
-    { username: 'alex', password: 'CampusCare@Student26', name: 'Alex Smith (21CS042)', role: 'student' }
-  ],
-  admin: [
-    { username: 'admin', password: 'CampusCare@Admin26', name: 'Campus Care Administrator', role: 'admin' },
-    { username: 'admin2', password: 'CampusCare@Admin26', name: 'Facilities Admin Officer', role: 'admin' }
-  ]
-};
-
 // DOM Elements - Views
 const portalSelectionView = document.getElementById('portalSelectionView');
 const loginFormView = document.getElementById('loginFormView');
@@ -43,17 +31,11 @@ const loginUsernameInput = document.getElementById('loginUsername');
 const loginPasswordInput = document.getElementById('loginPassword');
 const loginErrorMsg = document.getElementById('loginErrorMsg');
 
-// DOM Elements - Demo Chips
-const fillStudentDemoBtn = document.getElementById('fillStudentDemoBtn');
-const fillAdminDemoBtn = document.getElementById('fillAdminDemoBtn');
 const toastContainer = document.getElementById('toastContainer');
 
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
   initThemeToggle();
-
-  // Initialize realistic demo reports if visiting for the first time
-  initializeDemoReportsIfEmpty();
 
   const urlParams = new URLSearchParams(window.location.search);
 
@@ -335,37 +317,16 @@ function setRole(role) {
     if (formTitleText) formTitleText.textContent = 'Student Login';
     if (formSubtext) formSubtext.textContent = 'Sign in to file and track campus reports';
     if (submitBtnText) submitBtnText.textContent = 'Sign In as Student';
-    if (loginUsernameInput) loginUsernameInput.placeholder = 'e.g. student or 21CS042';
+    if (loginUsernameInput) loginUsernameInput.placeholder = 'you@college.edu';
   } else {
     if (tabAdminBtn) tabAdminBtn.classList.add('active');
     if (tabStudentBtn) tabStudentBtn.classList.remove('active');
     if (formTitleText) formTitleText.textContent = 'Admin Login';
     if (formSubtext) formSubtext.textContent = 'Sign in to manage and verify campus operations';
     if (submitBtnText) submitBtnText.textContent = 'Sign In as Admin';
-    if (loginUsernameInput) loginUsernameInput.placeholder = 'e.g. admin';
+    if (loginUsernameInput) loginUsernameInput.placeholder = 'admin@college.edu';
   }
   clearErrors();
-}
-
-// Auto-fill Demo Credentials
-if (fillStudentDemoBtn) {
-  fillStudentDemoBtn.addEventListener('click', () => {
-    setRole('student');
-    if (loginUsernameInput) loginUsernameInput.value = 'student';
-    if (loginPasswordInput) loginPasswordInput.value = 'CampusCare@Student26';
-    clearErrors();
-    showToast('Filled Student demo credentials', 'info');
-  });
-}
-
-if (fillAdminDemoBtn) {
-  fillAdminDemoBtn.addEventListener('click', () => {
-    setRole('admin');
-    if (loginUsernameInput) loginUsernameInput.value = 'admin';
-    if (loginPasswordInput) loginPasswordInput.value = 'CampusCare@Admin26';
-    clearErrors();
-    showToast('Filled Admin demo credentials', 'info');
-  });
 }
 
 // Real-time error clear
@@ -388,61 +349,57 @@ function clearErrors() {
  * Handle Form Submit
  */
 if (portalLoginForm) {
-  portalLoginForm.addEventListener('submit', (e) => {
+  portalLoginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearErrors();
 
     const role = activeRoleInput ? activeRoleInput.value : 'student';
-    const username = loginUsernameInput ? loginUsernameInput.value.trim().toLowerCase() : '';
+    const email = loginUsernameInput ? loginUsernameInput.value.trim().toLowerCase() : '';
     const password = loginPasswordInput ? loginPasswordInput.value : '';
 
-    let isValid = true;
+    if (!email) return showFieldError('loginUsername', 'Email address is required');
+    if (!password) return showFieldError('loginPassword', 'Password is required');
 
-    if (!username) {
-      showFieldError('loginUsername', 'Username is required');
-      isValid = false;
-    }
+    const button = document.getElementById('loginSubmitBtn');
+    if (button) button.disabled = true;
 
-    if (!password) {
-      showFieldError('loginPassword', 'Password is required');
-      isValid = false;
-    }
+    try {
+      const credential = await CampusCareFirebase.auth.signInWithEmailAndPassword(email, password);
+      const profile = await CampusCareFirebase.profileFor(credential.user);
+      if (!profile || !['student', 'admin'].includes(profile.role)) {
+        await CampusCareFirebase.auth.signOut();
+        throw new Error('Your account profile is missing. Ask the Campus Care administrator to finish setting up your profile.');
+      }
+      if (profile.role !== role) {
+        await CampusCareFirebase.auth.signOut();
+        throw new Error(`This account is registered as ${profile.role}. Choose the matching login portal.`);
+      }
 
-    if (!isValid) return;
-
-    // Validate against demo accounts
-    const accounts = DEMO_ACCOUNTS[role] || [];
-    const matched = accounts.find(acc => acc.username.toLowerCase() === username && acc.password === password);
-
-    if (!matched) {
+      const session = {
+        uid: credential.user.uid,
+        email: credential.user.email,
+        name: profile.name || credential.user.email,
+        role: profile.role,
+        loggedInAt: new Date().toISOString()
+      };
+      localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(session));
+      sessionStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(session));
+      window.location.href = profile.role === 'admin' ? 'admin.html' : 'lost.html';
+    } catch (error) {
       if (loginErrorMsg) {
-        loginErrorMsg.textContent = `Invalid ${role} username or password. Please verify your credentials or click a demo account below.`;
+        const authErrors = {
+          'auth/invalid-credential': 'Email or password is incorrect.',
+          'auth/user-not-found': 'No account exists for this email.',
+          'auth/wrong-password': 'Email or password is incorrect.',
+          'auth/too-many-requests': 'Too many attempts. Wait a little and try again.',
+          'auth/network-request-failed': 'Network error. Check your connection and try again.'
+        };
+        loginErrorMsg.textContent = authErrors[error.code] || error.message || 'Sign-in failed. Please try again.';
         loginErrorMsg.style.display = 'block';
       }
-      return;
+    } finally {
+      if (button) button.disabled = false;
     }
-
-    // Save session
-    const session = {
-      username: matched.username,
-      name: matched.name,
-      role: matched.role,
-      loggedInAt: new Date().toISOString()
-    };
-
-    localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(session));
-    sessionStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(session));
-
-    showToast(`Welcome, ${matched.name}!`, 'success');
-
-    // Route to appropriate section
-    setTimeout(() => {
-      if (matched.role === 'admin') {
-        window.location.href = 'admin.html';
-      } else {
-        window.location.href = 'lost.html';
-      }
-    }, 400);
   });
 }
 

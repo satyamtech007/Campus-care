@@ -73,14 +73,16 @@ const closeHistoryModalBtn = document.getElementById('closeHistoryModalBtn');
 const toastContainer = document.getElementById('toastContainer');
 
 // Startup initialization
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initThemeToggle();
-
-  // Initialize realistic demo reports if visiting for the first time
-  initializeDemoReportsIfEmpty();
-  if (!checkAdminAuth()) return;
-  loadReports();
-  attachFilterListeners();
+  try {
+    if (!(await checkAdminAuth())) return;
+    await loadReports();
+    attachFilterListeners();
+  } catch (error) {
+    console.error('Firebase dashboard initialization failed:', error);
+    showToast('Could not load the admin dashboard from Firebase.', 'error');
+  }
 });
 
 /**
@@ -367,17 +369,11 @@ function checkAndExpireOldItemReports() {
  * Access Control Check
  * @returns {boolean} True if authenticated as Admin
  */
-function checkAdminAuth() {
+async function checkAdminAuth() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY_SESSION) || sessionStorage.getItem(STORAGE_KEY_SESSION);
-    const session = raw ? JSON.parse(raw) : null;
-    if (!session || session.role !== 'admin') {
-      window.location.replace('index.html?error=unauthorized');
-      return false;
-    }
-    if (adminUserName && session.name) {
-      adminUserName.textContent = session.name;
-    }
+    const account = await CampusCareFirebase.requireRole('admin');
+    if (!account) return false;
+    if (adminUserName) adminUserName.textContent = account.profile.name || account.user.email;
     return true;
   } catch (err) {
     window.location.replace('index.html?error=unauthorized');
@@ -388,13 +384,15 @@ function checkAdminAuth() {
 /**
  * Loads reports from localStorage and updates UI (runs expiry check and matching check first)
  */
-function loadReports() {
-  initializeDemoReportsIfEmpty();
-  checkAndExpireOldItemReports();
-  checkAndRunCrossMatching();
+async function loadReports() {
   try {
-    const data = localStorage.getItem(STORAGE_KEY_REPORTS);
-    allReports = data ? JSON.parse(data) : [];
+    allReports = await CampusCareFirebase.loadAllReports();
+    const before = JSON.stringify(allReports);
+    checkAndExpireOldItemReports();
+    checkAndRunCrossMatching();
+    const after = localStorage.getItem(STORAGE_KEY_REPORTS) || '[]';
+    allReports = JSON.parse(after);
+    if (before !== after) await CampusCareFirebase.saveAdminReports(allReports);
   } catch (e) {
     console.error('Error loading reports:', e);
     allReports = [];
@@ -552,8 +550,8 @@ function checkAndRunCrossMatching() {
 /**
  * Saves reports to localStorage
  */
-function saveReportsToStorage() {
-  localStorage.setItem(STORAGE_KEY_REPORTS, JSON.stringify(allReports));
+async function saveReportsToStorage() {
+  await CampusCareFirebase.saveAdminReports(allReports);
 }
 
 /**
@@ -719,14 +717,20 @@ function attachFilterListeners() {
     renderTable();
   });
 
-  refreshBtn.addEventListener('click', () => {
-    loadReports();
-    showToast('Dashboard refreshed with latest data', 'info');
+  refreshBtn.addEventListener('click', async () => {
+    try {
+      await loadReports();
+      showToast('Dashboard refreshed with latest data', 'info');
+    } catch (error) {
+      showToast('Could not refresh reports from Firebase.', 'error');
+    }
   });
 
-  logoutBtn.addEventListener('click', () => {
+  logoutBtn.addEventListener('click', async () => {
     localStorage.removeItem(STORAGE_KEY_SESSION);
     sessionStorage.removeItem(STORAGE_KEY_SESSION);
+    localStorage.removeItem(STORAGE_KEY_REPORTS);
+    await CampusCareFirebase.auth.signOut();
     window.location.href = 'index.html?logout=true';
   });
 }
@@ -793,7 +797,7 @@ function closeStatusModal() {
 closeStatusModalX.addEventListener('click', closeStatusModal);
 closeStatusModalBtn.addEventListener('click', closeStatusModal);
 
-statusUpdateForm.addEventListener('submit', (e) => {
+statusUpdateForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const reportId = statusModalTargetId.value;
   const newStatus = newStatusSelect.value;
@@ -819,7 +823,12 @@ statusUpdateForm.addEventListener('submit', (e) => {
     remark: `Admin update: ${remarkText}`
   });
 
-  saveReportsToStorage();
+  try {
+    await saveReportsToStorage();
+  } catch (error) {
+    showToast('Could not save the status update to Firebase.', 'error');
+    return;
+  }
   closeStatusModal();
   updateStats();
   renderTable();
@@ -865,7 +874,7 @@ closeVerifyModalX.addEventListener('click', closeVerifyModal);
 closeVerifyModalBtn.addEventListener('click', closeVerifyModal);
 
 // Approve Claim & Mark Returned
-btnApproveClaim.addEventListener('click', () => {
+btnApproveClaim.addEventListener('click', async () => {
   const reportId = verifyTargetId.value;
   const claimantName = claimantNameInput.value.trim();
   const claimantContact = claimantContactInput.value.trim();
@@ -911,7 +920,12 @@ btnApproveClaim.addEventListener('click', () => {
     remark: remarkMsg
   });
 
-  saveReportsToStorage();
+  try {
+    await saveReportsToStorage();
+  } catch (error) {
+    showToast('Could not save the claim verification to Firebase.', 'error');
+    return;
+  }
   closeVerifyModal();
   updateStats();
   renderTable();
@@ -919,7 +933,7 @@ btnApproveClaim.addEventListener('click', () => {
 });
 
 // Reject Claim
-btnRejectClaim.addEventListener('click', () => {
+btnRejectClaim.addEventListener('click', async () => {
   const reportId = verifyTargetId.value;
   const claimantName = claimantNameInput.value.trim() || 'Claimant';
   const claimantAnswer = claimantAnswerInput.value.trim() || 'No answer provided';
@@ -940,7 +954,12 @@ btnRejectClaim.addEventListener('click', () => {
     remark: remarkMsg
   });
 
-  saveReportsToStorage();
+  try {
+    await saveReportsToStorage();
+  } catch (error) {
+    showToast('Could not save the claim decision to Firebase.', 'error');
+    return;
+  }
   closeVerifyModal();
   updateStats();
   renderTable();

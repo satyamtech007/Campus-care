@@ -45,28 +45,29 @@ if (navToggle && siteNav) {
 // User Logout handler
 const userLogoutBtn = document.getElementById('userLogoutBtn');
 if (userLogoutBtn) {
-  userLogoutBtn.addEventListener('click', () => {
+  userLogoutBtn.addEventListener('click', async () => {
     localStorage.removeItem('campusCare_session');
     sessionStorage.removeItem('campusCare_session');
+    localStorage.removeItem('campusCare_reports');
+    await CampusCareFirebase.auth.signOut();
     window.location.href = 'index.html?logout=true';
   });
 }
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initThemeToggle();
 
   const today = new Date().toISOString().split('T')[0];
   lostDateInput.setAttribute('max', today);
   lostDateInput.value = today;
 
-  // Initialize realistic demo reports if visiting for the first time
-  initializeDemoReportsIfEmpty();
-
-  // Run automatic expiry check before displaying any reports
-  checkAndExpireOldItemReports();
-
-  // Load initial reports from localStorage
+  try {
+    await CampusCareFirebase.loadMyReports();
+  } catch (error) {
+    showToast('Could not load your reports from Firebase. Please refresh and try again.', 'error');
+    console.error(error);
+  }
   renderRecentReports();
 });
 
@@ -500,9 +501,6 @@ function checkAndRunCrossMatching() {
  * @returns {Array} Array of report objects
  */
 function getStoredReports() {
-  initializeDemoReportsIfEmpty();
-  checkAndExpireOldItemReports();
-  checkAndRunCrossMatching();
   try {
     const data = localStorage.getItem(STORAGE_KEY_REPORTS);
     return data ? JSON.parse(data) : [];
@@ -516,11 +514,8 @@ function getStoredReports() {
  * Saves report to localStorage and runs matching
  * @param {Object} report 
  */
-function saveReport(report) {
-  const reports = getStoredReports();
-  reports.unshift(report); // Add new reports to top
-  localStorage.setItem(STORAGE_KEY_REPORTS, JSON.stringify(reports));
-  checkAndRunCrossMatching();
+async function saveReport(report) {
+  return CampusCareFirebase.createReport(report);
 }
 
 /**
@@ -636,7 +631,7 @@ function clearErrors() {
 /**
  * Handles form submission
  */
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   if (!validateForm()) {
@@ -670,8 +665,12 @@ form.addEventListener('submit', (e) => {
     ]
   };
 
-  // Save to localStorage
-  saveReport(newReport);
+  try {
+    await saveReport(newReport);
+  } catch (error) {
+    showToast(error.message || 'Could not save the report. Please try again.', 'error');
+    return;
+  }
 
   // Update UI and show confirmation modal
   showSuccessModal(newReport);

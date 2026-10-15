@@ -49,22 +49,24 @@ if (navToggle && siteNav) {
 // User Logout handler
 const userLogoutBtn = document.getElementById('userLogoutBtn');
 if (userLogoutBtn) {
-  userLogoutBtn.addEventListener('click', () => {
+  userLogoutBtn.addEventListener('click', async () => {
     localStorage.removeItem('campusCare_session');
     sessionStorage.removeItem('campusCare_session');
+    localStorage.removeItem('campusCare_reports');
+    await CampusCareFirebase.auth.signOut();
     window.location.href = 'index.html?logout=true';
   });
 }
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initThemeToggle();
-
-  // Initialize realistic demo reports if visiting for the first time
-  initializeDemoReportsIfEmpty();
-
-  // Run automatic expiry check before retrieving or displaying reports
-  checkAndExpireOldItemReports();
+  try {
+    await CampusCareFirebase.loadMyReports();
+  } catch (error) {
+    showToast('Could not load your reports from Firebase. Please refresh and try again.', 'error');
+    console.error(error);
+  }
 
   renderQuickSuggestions();
 
@@ -527,9 +529,6 @@ function checkAndRunCrossMatching() {
  * @returns {Array} Array of report objects
  */
 function getStoredReports() {
-  initializeDemoReportsIfEmpty();
-  checkAndExpireOldItemReports();
-  checkAndRunCrossMatching();
   try {
     const data = localStorage.getItem(STORAGE_KEY_REPORTS);
     return data ? JSON.parse(data) : [];
@@ -574,7 +573,7 @@ function renderQuickSuggestions() {
 /**
  * Handles Track Form Submission
  */
-trackForm.addEventListener('submit', (e) => {
+trackForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const query = trackInput.value.trim();
 
@@ -584,6 +583,11 @@ trackForm.addEventListener('submit', (e) => {
     return;
   }
 
+  const report = await CampusCareFirebase.getMyReport(query.toUpperCase());
+  if (report) {
+    const reports = getStoredReports();
+    localStorage.setItem(STORAGE_KEY_REPORTS, JSON.stringify([report, ...reports.filter(item => item.id !== report.id)]));
+  }
   performTrack(query);
 });
 
