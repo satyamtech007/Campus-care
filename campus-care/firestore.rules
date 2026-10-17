@@ -1,53 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() {
-      return request.auth != null;
-    }
-
-    function profile(uid) {
-      return get(/databases/$(database)/documents/users/$(uid));
-    }
-
-    function isAdmin() {
-      return signedIn() && profile(request.auth.uid).data.role == 'admin';
-    }
-
-    function isStudent() {
-      return signedIn() && profile(request.auth.uid).data.role == 'student';
-    }
-
-    match /users/{userId} {
-      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
-      allow create: if signedIn()
-                    && request.auth.uid == userId
-                    && request.resource.data.role == 'student'
-                    && request.resource.data.email == request.auth.token.email
-                    && request.resource.data.keys().hasOnly([
-                      'role', 'name', 'studentId', 'email', 'createdAt', 'phone'
-                    ]);
-      allow update: if signedIn()
-                    && request.auth.uid == userId
-                    && request.resource.data.role == resource.data.role
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-                      'name', 'studentId', 'phone', 'updatedAt'
-                    ]);
-      allow delete: if false;
-    }
-
-    match /reports/{reportId} {
-      allow read: if isAdmin()
-                  || (signedIn() && resource.data.ownerUid == request.auth.uid);
-      allow create: if isStudent()
-                    && request.resource.data.ownerUid == request.auth.uid
-                    && request.resource.data.id == reportId
-                    && request.resource.data.type in ['lost', 'found', 'issue']
-                    && request.resource.data.status in ['OPEN', 'Open', 'Assigned'];
-      allow update, delete: if isAdmin();
-    }
-
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if request.auth != null;
     }
   }
 }

@@ -19,11 +19,43 @@ const adminUserName = document.getElementById('adminUserName');
 const logoutBtn = document.getElementById('logoutBtn');
 const refreshBtn = document.getElementById('refreshBtn');
 
+// Setup compatibility mapping for stat element IDs (supports modern & legacy identifiers)
+(function setupStatIdCompatibility() {
+  const idMap = {
+    'statOpenIssues': 'statOpenReports',
+    'statFoundPending': 'statMatchFound',
+    'statResolvedCount': 'statResolved',
+    'statOpenReports': 'statOpenIssues',
+    'statMatchFound': 'statFoundPending',
+    'statResolved': 'statResolvedCount'
+  };
+
+  const origGetElementById = document.getElementById.bind(document);
+  document.getElementById = function(id) {
+    let elem = origGetElementById(id);
+    if (!elem && idMap[id]) elem = origGetElementById(idMap[id]);
+    return elem;
+  };
+
+  const origQuerySelector = document.querySelector.bind(document);
+  document.querySelector = function(selector) {
+    let elem = origQuerySelector(selector);
+    if (!elem && typeof selector === 'string' && selector.startsWith('#')) {
+      const id = selector.slice(1);
+      if (idMap[id]) elem = origGetElementById(idMap[id]);
+    }
+    return elem;
+  };
+})();
+
 // DOM Elements - Stats
 const statTotalReports = document.getElementById('statTotalReports');
-const statOpenIssues = document.getElementById('statOpenIssues');
-const statFoundPending = document.getElementById('statFoundPending');
-const statResolvedCount = document.getElementById('statResolvedCount');
+const statOpenReports = document.getElementById('statOpenReports') || document.getElementById('statOpenIssues');
+const statOpenIssues = statOpenReports;
+const statMatchFound = document.getElementById('statMatchFound') || document.getElementById('statFoundPending');
+const statFoundPending = statMatchFound;
+const statResolved = document.getElementById('statResolved') || document.getElementById('statResolvedCount');
+const statResolvedCount = statResolved;
 
 const countTypeAll = document.getElementById('countTypeAll');
 const countTypeLost = document.getElementById('countTypeLost');
@@ -750,14 +782,14 @@ function updateStats() {
   const foundCount = allReports.filter(r => r.type === 'found').length;
   const issueCount = allReports.filter(r => r.type === 'issue').length;
 
-  const openIssues = allReports.filter(r => r.type === 'issue' && (normalizeStatus(r.status) === 'OPEN' || normalizeStatus(r.status) === 'IN PROGRESS')).length;
-  const foundPending = allReports.filter(r => r.type === 'found' && (normalizeStatus(r.status) === 'OPEN' || normalizeStatus(r.status) === 'MATCH FOUND')).length;
+  const openReportsCount = allReports.filter(r => normalizeStatus(r.status) === 'OPEN').length;
+  const matchFoundCount = allReports.filter(r => normalizeStatus(r.status) === 'MATCH FOUND').length;
   const resolvedCount = allReports.filter(r => normalizeStatus(r.status) === 'RESOLVED').length;
 
-  statTotalReports.textContent = total;
-  statOpenIssues.textContent = openIssues;
-  statFoundPending.textContent = foundPending;
-  statResolvedCount.textContent = resolvedCount;
+  if (statTotalReports) statTotalReports.textContent = total;
+  if (statOpenReports) statOpenReports.textContent = openReportsCount;
+  if (statMatchFound) statMatchFound.textContent = matchFoundCount;
+  if (statResolved) statResolved.textContent = resolvedCount;
 
   countTypeAll.textContent = total;
   countTypeLost.textContent = lostCount;
