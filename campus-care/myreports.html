@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Care - My Reports</title>
+  <meta name="description"
+    content="View and track all your submitted lost items, found items, and campus issues in one centralized student portal.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    (function () {
+      try {
+        var savedTheme = localStorage.getItem('campusCare_theme');
+        var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = savedTheme ? savedTheme : (systemPrefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <script>
+    (function () {
+      try {
+        var raw = localStorage.getItem('campusCare_session') || sessionStorage.getItem('campusCare_session');
+        var session = raw ? JSON.parse(raw) : null;
+        if (!session) {
+          window.location.replace('login.html');
+        }
+      } catch (e) {
+        window.location.replace('login.html');
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- Header / Navigation -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">Campus Care</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs (Student Only) -->
+      <nav class="site-nav" id="siteNav" aria-label="Main Navigation">
+        <a href="lost.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span>Report Lost Item</span>
+        </a>
+        <a href="found.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+            </path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+          <span>Report Found Item</span>
+        </a>
+        <a href="issue.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>Report Campus Issue</span>
+        </a>
+        <a href="track.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+          </svg>
+          <span>Track Status</span>
+        </a>
+        <a href="myreports.html" class="nav-link active" aria-current="page">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span>My Reports</span>
+        </a>
+      </nav>
+
+      <!-- Header Right Group (Theme Toggle, Logout, Mobile Nav Toggle) -->
+      <div class="header-right-group">
+        <button type="button" class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle dark mode"
+          title="Toggle theme">
+          <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <button type="button" class="btn btn-secondary btn-logout-user" id="userLogoutBtn" title="Log Out">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Logout</span>
+        </button>
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-wrapper">
+    <!-- Page Hero -->
+    <section class="page-hero">
+      <div class="badge-pill">
+        <span class="pulse-dot"></span>
+        <span>STUDENT PORTAL</span>
+      </div>
+      <h1 class="page-title">My Submitted Reports</h1>
+      <p class="page-description">
+        Real-time history of all lost item inquiries, found item registrations, and campus maintenance issues submitted from your student account.
+      </p>
+      <div style="margin-top: 1.1rem; display: inline-flex; align-items: center; gap: 0.55rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-full); padding: 0.45rem 1.15rem; font-size: 0.85rem; box-shadow: var(--shadow-sm);">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+        <span style="color: var(--text-muted);">Logged in as:</span>
+        <strong id="studentAccountName" style="color: var(--text-main);">Loading...</strong>
+      </div>
+    </section>
+
+    <!-- Filters & Search Toolbar -->
+    <section class="admin-dashboard-controls">
+      <div class="controls-top-row" style="background: var(--bg-surface); padding: 1rem 1.25rem; border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+        <!-- Type Tabs -->
+        <div class="filter-type-tabs" role="tablist">
+          <button type="button" class="type-tab-btn active" data-type="all">
+            All Reports (<span id="countAll">0</span>)
+          </button>
+          <button type="button" class="type-tab-btn" data-type="lost">
+            Lost Items (<span id="countLost">0</span>)
+          </button>
+          <button type="button" class="type-tab-btn" data-type="found">
+            Found Items (<span id="countFound">0</span>)
+          </button>
+          <button type="button" class="type-tab-btn" data-type="issue">
+            Campus Issues (<span id="countIssue">0</span>)
+          </button>
+        </div>
+
+        <!-- Search Input -->
+        <div class="admin-search-wrapper" style="flex: 1; min-width: 220px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="reportSearchInput" placeholder="Search by ID, title, location..." autocomplete="off">
+        </div>
+
+        <!-- Status Filter -->
+        <div class="status-filter-wrapper">
+          <select id="statusFilterSelect">
+            <option value="all">All Statuses</option>
+            <option value="OPEN">OPEN</option>
+            <option value="MATCH FOUND">MATCH FOUND</option>
+            <option value="IN PROGRESS">IN PROGRESS</option>
+            <option value="RESOLVED">RESOLVED</option>
+          </select>
+        </div>
+
+        <!-- Refresh Button -->
+        <button type="button" class="btn btn-secondary" id="refreshMyReportsBtn" title="Refresh Reports" style="height: 44px; display: inline-flex; align-items: center; gap: 0.4rem;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+          </svg>
+          <span>Refresh</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Loading State View -->
+    <div id="loadingView" style="text-align: center; padding: 4rem 1.5rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); margin-bottom: 2rem;">
+      <div style="display: inline-block; width: 36px; height: 36px; border: 3px solid var(--border-color); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem;"></div>
+      <p style="color: var(--text-muted); font-size: 0.92rem; font-weight: 500;">Fetching your submitted reports from Firestore...</p>
+    </div>
+
+    <!-- Empty State View (Shown when no reports submitted) -->
+    <div id="emptyReportsState" class="empty-state" style="display: none; padding: 3.5rem 1.5rem; text-align: center; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+      <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--bg-surface-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-light);">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+      </div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;" id="emptyTitleText">You haven’t submitted any reports yet.</h3>
+      <p style="color: var(--text-muted); font-size: 0.92rem; max-width: 440px; margin: 0 auto 1.75rem auto;" id="emptySubText">
+        Any lost items, found items, or campus maintenance issues you report will appear here with live updates from administration.
+      </p>
+      <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+        <a href="lost.html" class="btn btn-primary" style="font-size: 0.88rem; padding: 0.6rem 1.2rem;">Report Lost Item</a>
+        <a href="found.html" class="btn btn-secondary" style="font-size: 0.88rem; padding: 0.6rem 1.2rem;">Report Found Item</a>
+        <a href="issue.html" class="btn btn-secondary" style="font-size: 0.88rem; padding: 0.6rem 1.2rem;">Report Campus Issue</a>
+      </div>
+    </div>
+
+    <!-- Reports Table Container -->
+    <section class="form-card admin-table-card" id="reportsTableContainer" style="display: none; margin-bottom: 2.5rem; padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+      <div class="table-card-header" style="margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+        <div>
+          <h2 class="card-title" style="font-size: 1.25rem; margin-bottom: 0.25rem;">My Reports History</h2>
+          <p class="card-caption">All lost, found, and maintenance reports submitted from your account</p>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Report ID</th>
+              <th>Type</th>
+              <th>Title / Item Name</th>
+              <th>Location</th>
+              <th>Date Submitted</th>
+              <th>Current Status</th>
+              <th style="text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="myReportsTableBody">
+            <!-- Dynamically populated via myreports.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <footer class="site-footer">
+    <p>&copy; Campus Care Portal &bull; Centralized Issue & Lost/Found Management System</p>
+  </footer>
+
+  <style>
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
+  <!-- Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-client.js"></script>
+  <script src="app.js"></script>
+  <script src="myreports.js"></script>
+</body>
+
+</html>

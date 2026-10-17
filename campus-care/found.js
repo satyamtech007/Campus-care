@@ -34,6 +34,9 @@ const form = document.getElementById('foundItemForm');
 const itemNameInput = document.getElementById('itemName');
 const categorySelect = document.getElementById('category');
 const foundDateInput = document.getElementById('foundDate');
+if (foundDateInput) {
+  foundDateInput.max = new Date().toISOString().split('T')[0];
+}
 const locationInput = document.getElementById('location');
 const descriptionInput = document.getElementById('description');
 const secretDetailInput = document.getElementById('secretDetail');
@@ -63,8 +66,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   initThemeToggle();
 
   const today = new Date().toISOString().split('T')[0];
-  foundDateInput.setAttribute('max', today);
-  foundDateInput.value = today;
+  if (foundDateInput) {
+    foundDateInput.max = today;
+    foundDateInput.value = today;
+  }
 
   try {
     await CampusCareFirebase.loadMyReports();
@@ -515,11 +520,87 @@ function getStoredReports() {
 }
 
 /**
- * Saves report to localStorage and runs matching
+ * Ensures Firebase is fully initialized and retrieves the current authenticated student
+ */
+async function getAuthenticatedStudent() {
+  if (typeof firebase === 'undefined') {
+    throw new Error('Firebase SDK is not loaded. Please check your network connection.');
+  }
+
+  // Ensure Firebase app is initialized
+  if (!firebase.apps.length && window.CampusCareFirebase && CampusCareFirebase.config) {
+    firebase.initializeApp(CampusCareFirebase.config);
+  }
+
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // Wait for auth state to be resolved
+  const user = await new Promise((resolve) => {
+    const unsub = auth.onAuthStateChanged(u => {
+      unsub();
+      resolve(u);
+    }, () => resolve(null));
+  });
+
+  let profile = null;
+  if (user) {
+    try {
+      const snap = await db.collection('users').doc(user.uid).get();
+      if (snap.exists) {
+        profile = snap.data();
+      }
+    } catch (e) {
+      console.warn('Could not read user profile from Firestore:', e);
+    }
+  }
+
+  // Fallback to local session if auth state is delayed or in demo mode
+  let session = null;
+  try {
+    const raw = sessionStorage.getItem('campusCare_session') || localStorage.getItem('campusCare_session');
+    if (raw) session = JSON.parse(raw);
+  } catch (_) {}
+
+  const uid = (user && user.uid) || (session && session.uid) || null;
+  const studentID = (profile && (profile.studentID || profile.studentId)) || (session && (session.studentID || session.studentId)) || uid || '';
+  const studentName = (profile && (profile.name || profile.fullName)) || (session && session.name) || (user && user.displayName) || (user && user.email) || '';
+
+  return {
+    user,
+    profile,
+    uid,
+    studentID,
+    studentName,
+    db
+  };
+}
+
+/**
+ * Saves report to Firestore 'reports' collection and updates local storage
  * @param {Object} report 
  */
 async function saveReport(report) {
-  return CampusCareFirebase.createReport(report);
+  // Use CampusCareFirebase.createReport if available
+  if (window.CampusCareFirebase && CampusCareFirebase.createReport) {
+    return await CampusCareFirebase.createReport(report);
+  }
+
+  // Fallback direct Firestore write
+  if (typeof firebase === 'undefined' || !firebase.firestore) {
+    throw new Error('Firebase Firestore is not initialized.');
+  }
+
+  const db = firebase.firestore();
+  await db.collection('reports').doc(String(report.id)).set(report);
+
+  // Update local cache
+  try {
+    const existing = JSON.parse(localStorage.getItem(STORAGE_KEY_REPORTS) || '[]');
+    localStorage.setItem(STORAGE_KEY_REPORTS, JSON.stringify([report, ...existing.filter(i => i.id !== report.id)]));
+  } catch (_) {}
+
+  return report;
 }
 
 /**
@@ -558,8 +639,12 @@ function validateForm() {
   }
 
   // Validate Date Found
+  const todayStr = new Date().toISOString().split('T')[0];
   if (!foundDateInput.value) {
     showError('foundDate', 'Please select the date when the item was found');
+    isValid = false;
+  } else if (foundDateInput.value > todayStr) {
+    showError('foundDate', 'Date found cannot be in the future');
     isValid = false;
   }
 
@@ -658,55 +743,106 @@ function clearErrors() {
 /**
  * Handles form submission
  */
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-  if (!validateForm()) {
-    showToast('Please fix the errors in the form before submitting.', 'error');
-    return;
-  }
+    const errBanner = document.getElementById('formSubmitError');
+    if (errBanner) {
+      errBanner.style.display = 'none';
+      errBanner.textContent = '';
+    }
 
-  const uniqueId = generateUniqueFoundId();
-  const timestamp = new Date().toISOString();
+    if (!validateForm()) {
+      showToast('Please fix the errors in the form before submitting.', 'error');
+      return;
+    }
 
-  // Create found report object
-  const newReport = {
-    id: uniqueId,
-    type: 'found',
-    itemName: itemNameInput.value.trim(),
-    category: categorySelect.value,
-    date: foundDateInput.value,
-    location: locationInput.value.trim(),
-    description: descriptionInput.value.trim(),
-    secretDetail: secretDetailInput.value.trim(), // Stored securely; NEVER exposed publicly
-    studentName: studentNameInput.value.trim() || 'Anonymous Finder',
-    phone: phoneNumberInput.value.trim(),
-    contact: phoneNumberInput.value.trim(),
-    email: emailInput && emailInput.value.trim() ? emailInput.value.trim() : 'Not provided',
-    keptAt: keptAtSelect && keptAtSelect.value ? keptAtSelect.value : 'Not provided',
-    status: 'Open',
-    createdAt: timestamp,
-    history: [
-      {
-        status: 'Open',
-        timestamp: timestamp,
-        remark: 'Found item report submitted by finder'
+    const submitBtn = document.getElementById('submitBtn');
+    const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+        <div style="display:inline-block; width:16px; height:16px; border:2px solid #ffffff; border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px; vertical-align:middle;"></div>
+        <span>Saving to Firestore...</span>
+      `;
+    }
+
+    try {
+      // 1. Ensure Firebase is ready and get logged-in student info
+      const student = await getAuthenticatedStudent();
+      if (!student || !student.user) {
+        throw new Error('You must be signed in with a student account to submit a report. Please log in first.');
       }
-    ]
-  };
 
-  try {
-    await saveReport(newReport);
-  } catch (error) {
-    showToast(error.message || 'Could not save the report. Please try again.', 'error');
-    return;
-  }
+      const uniqueId = generateUniqueFoundId();
+      const timestamp = new Date().toISOString();
 
-  // Update UI and show confirmation modal
-  showSuccessModal(newReport);
-  renderRecentFoundReports();
-  showToast(`Found Report ${uniqueId} saved successfully!`, 'success');
-});
+      const enteredName = studentNameInput ? studentNameInput.value.trim() : '';
+      const finalStudentName = enteredName || student.studentName || 'Student';
+
+      // 2. Create found report object with attached user credentials
+      const newReport = {
+        id: uniqueId,
+        reportId: uniqueId,
+        type: 'found',
+        itemName: itemNameInput.value.trim(),
+        category: categorySelect.value,
+        date: foundDateInput.value,
+        location: locationInput.value.trim(),
+        description: descriptionInput.value.trim(),
+        secretDetail: secretDetailInput.value.trim(), // Stored securely; NEVER exposed publicly
+        studentName: finalStudentName,
+        studentID: student.studentID || student.uid,
+        studentId: student.studentID || student.uid,
+        uid: student.uid,
+        ownerUid: student.uid,
+        phone: phoneNumberInput.value.trim(),
+        contact: phoneNumberInput.value.trim(),
+        email: (emailInput && emailInput.value.trim()) || (student.user && student.user.email) || 'Not provided',
+        keptAt: (keptAtSelect && keptAtSelect.value) ? keptAtSelect.value : 'Not provided',
+        status: 'OPEN',
+        createdAt: timestamp,
+        history: [
+          {
+            status: 'OPEN',
+            timestamp: timestamp,
+            remark: 'Report submitted and pending Admin review'
+          }
+        ]
+      };
+
+      // 3. Save report to Firestore
+      await saveReport(newReport);
+
+      // 4. Clear form upon successful save
+      form.reset();
+      const today = new Date().toISOString().split('T')[0];
+      if (foundDateInput) foundDateInput.value = today;
+      clearErrors();
+
+      // 5. Update UI, display confirmation modal and success toast
+      showSuccessModal(newReport);
+      renderRecentFoundReports();
+      showToast(`Found Report ${uniqueId} saved successfully!`, 'success');
+    } catch (error) {
+      console.error('Error saving found report to Firestore:', error);
+      const errorMsg = error.message || 'Could not save the report to Firestore. Please try again.';
+      if (errBanner) {
+        errBanner.textContent = errorMsg;
+        errBanner.style.display = 'block';
+        errBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      showToast(errorMsg, 'error');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
+      }
+    }
+  });
+}
 
 /**
  * Populates and shows the success modal dialog
@@ -814,14 +950,26 @@ function escapeHtml(str) {
 }
 
 /**
- * Displays brief toast notification
+ * Displays brief toast notification with prominent styling for errors
  */
 function showToast(message, type = 'info') {
+  if (!toastContainer) return;
   const toast = document.createElement('div');
   toast.className = 'toast';
   
-  toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
+  if (type === 'error') {
+    toast.style.background = '#b91c1c';
+    toast.style.color = '#ffffff';
+    toast.style.boxShadow = '0 8px 24px rgba(185, 28, 28, 0.4)';
+    toast.style.border = '1px solid #ef4444';
+  } else if (type === 'success') {
+    toast.style.background = '#15803d';
+    toast.style.color = '#ffffff';
+    toast.style.boxShadow = '0 8px 24px rgba(21, 128, 61, 0.35)';
+    toast.style.border = '1px solid #22c55e';
+  }
   
+  toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
   toastContainer.appendChild(toast);
   
   setTimeout(() => {
@@ -833,5 +981,21 @@ function showToast(message, type = 'info') {
         toast.parentNode.removeChild(toast);
       }
     }, 300);
-  }, 3500);
+  }, 4500);
 }
+
+// Ensure Firebase is ready and populate user details on page load
+document.addEventListener('DOMContentLoaded', async () => {
+  if (foundDateInput) {
+    foundDateInput.max = new Date().toISOString().split('T')[0];
+  }
+
+  try {
+    const student = await getAuthenticatedStudent();
+    if (student && student.studentName && studentNameInput && !studentNameInput.value) {
+      studentNameInput.placeholder = `Logged in as: ${student.studentName}`;
+    }
+  } catch (err) {
+    console.warn('Initialization note:', err);
+  }
+});

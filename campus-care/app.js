@@ -42,16 +42,122 @@ if (navToggle && siteNav) {
   });
 }
 
-// User Logout handler
+/**
+ * Logout Confirmation Modal Dialog
+ */
+function showLogoutConfirmation({ title = 'Confirm Logout', message = 'Are you sure you want to log out?', onConfirm }) {
+  let modal = document.getElementById('ccLogoutModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'ccLogoutModal';
+    modal.className = 'modal-overlay';
+    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'ccLogoutTitle');
+    modal.innerHTML = `
+      <div class="modal-dialog" style="max-width: 440px; text-align: center; padding: 2rem 1.75rem;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--color-danger-soft, #fef2f2); border: 2px solid var(--color-danger-border, #fecaca); color: var(--color-danger, #ef4444); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </div>
+        <h3 class="modal-title" id="ccLogoutTitle" style="font-size: 1.35rem; margin-bottom: 0.5rem;"></h3>
+        <p class="modal-subtitle" id="ccLogoutDesc" style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;"></p>
+        <div class="modal-actions" style="display: flex; gap: 0.75rem; justify-content: center;">
+          <button type="button" class="btn btn-secondary" id="ccCancelLogoutBtn" style="flex: 1; min-height: 44px;">
+            <span>Cancel</span>
+          </button>
+          <button type="button" class="btn" id="ccConfirmLogoutBtn" style="flex: 1; min-height: 44px; background: var(--color-danger, #ef4444); color: #ffffff; border: 1px solid var(--color-danger, #ef4444); font-weight: 600; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);">
+            <span>Log Out</span>
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  const titleElem = modal.querySelector('#ccLogoutTitle');
+  const descElem = modal.querySelector('#ccLogoutDesc');
+  const cancelBtn = modal.querySelector('#ccCancelLogoutBtn');
+  const confirmBtn = modal.querySelector('#ccConfirmLogoutBtn');
+
+  titleElem.textContent = title;
+  descElem.textContent = message;
+  confirmBtn.disabled = false;
+  confirmBtn.innerHTML = '<span>Log Out</span>';
+  cancelBtn.disabled = false;
+
+  function closeModal() {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', onKeyDown);
+  }
+
+  function onKeyDown(e) {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+  }
+
+  cancelBtn.onclick = () => {
+    closeModal();
+  };
+
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  };
+
+  confirmBtn.onclick = async () => {
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span>Logging out...</span>';
+    cancelBtn.disabled = true;
+    if (typeof onConfirm === 'function') {
+      try {
+        await onConfirm();
+      } catch (err) {
+        console.error('Logout error:', err);
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<span>Log Out</span>';
+        cancelBtn.disabled = false;
+      }
+    }
+  };
+
+  document.addEventListener('keydown', onKeyDown);
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  cancelBtn.focus();
+}
+
+// User Logout handler with confirmation popup
 const userLogoutBtn = document.getElementById('userLogoutBtn');
 if (userLogoutBtn) {
-  userLogoutBtn.addEventListener('click', async () => {
-    localStorage.removeItem('campusCare_session');
-    sessionStorage.removeItem('campusCare_session');
-    localStorage.removeItem('campusCare_reports');
-    await CampusCareFirebase.auth.signOut();
-    window.location.href = 'index.html?logout=true';
-  });
+  userLogoutBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    showLogoutConfirmation({
+      title: 'Confirm Logout',
+      message: 'Are you sure you want to log out of your student session? Any unsaved form progress will be lost.',
+      onConfirm: async () => {
+        localStorage.removeItem('campusCare_session');
+        sessionStorage.removeItem('campusCare_session');
+        localStorage.removeItem('campusCare_reports');
+        if (window.CampusCareFirebase && CampusCareFirebase.auth) {
+          try {
+            await CampusCareFirebase.auth.signOut();
+          } catch (err) {
+            console.error('Firebase signOut error:', err);
+          }
+        }
+        window.location.href = 'index.html?logout=true';
+      }
+    });
+  }, true);
 }
 
 // Initialize on page load
@@ -59,16 +165,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   initThemeToggle();
 
   const today = new Date().toISOString().split('T')[0];
-  lostDateInput.setAttribute('max', today);
-  lostDateInput.value = today;
+  if (lostDateInput) {
+    lostDateInput.setAttribute('max', today);
+    lostDateInput.value = today;
+  }
 
   try {
-    await CampusCareFirebase.loadMyReports();
+    if (lostDateInput && window.CampusCareFirebase && CampusCareFirebase.loadMyReports) {
+      await CampusCareFirebase.loadMyReports();
+    }
   } catch (error) {
     showToast('Could not load your reports from Firebase. Please refresh and try again.', 'error');
     console.error(error);
   }
-  renderRecentReports();
+  if (recentReportsList) {
+    renderRecentReports();
+  }
 });
 
 /**
@@ -631,52 +743,54 @@ function clearErrors() {
 /**
  * Handles form submission
  */
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  if (!validateForm()) {
-    showToast('Please fix the errors in the form before submitting.', 'error');
-    return;
-  }
+    if (!validateForm()) {
+      showToast('Please fix the errors in the form before submitting.', 'error');
+      return;
+    }
 
-  const uniqueId = generateUniqueReportId();
-  const timestamp = new Date().toISOString();
+    const uniqueId = generateUniqueReportId();
+    const timestamp = new Date().toISOString();
 
-  // Create report object as per design document specifications
-  const newReport = {
-    id: uniqueId,
-    type: 'lost',
-    itemName: itemNameInput.value.trim(),
-    category: categorySelect.value,
-    date: lostDateInput.value,
-    location: locationInput.value.trim(),
-    description: descriptionInput.value.trim(),
-    studentName: studentNameInput.value.trim() || 'Anonymous Student',
-    phone: phoneNumberInput.value.trim(),
-    contact: phoneNumberInput.value.trim(),
-    status: 'Open', // As per Algorithm step 4 & Status reference table
-    createdAt: timestamp,
-    history: [
-      {
-        status: 'Open',
-        timestamp: timestamp,
-        remark: 'Lost item report submitted by student'
-      }
-    ]
-  };
+    // Create report object as per design document specifications
+    const newReport = {
+      id: uniqueId,
+      type: 'lost',
+      itemName: itemNameInput.value.trim(),
+      category: categorySelect.value,
+      date: lostDateInput.value,
+      location: locationInput.value.trim(),
+      description: descriptionInput.value.trim(),
+      studentName: studentNameInput.value.trim() || 'Anonymous Student',
+      phone: phoneNumberInput.value.trim(),
+      contact: phoneNumberInput.value.trim(),
+      status: 'OPEN', // Standardized canonical status
+      createdAt: timestamp,
+      history: [
+        {
+          status: 'OPEN',
+          timestamp: timestamp,
+          remark: 'Report submitted and pending Admin review'
+        }
+      ]
+    };
 
-  try {
-    await saveReport(newReport);
-  } catch (error) {
-    showToast(error.message || 'Could not save the report. Please try again.', 'error');
-    return;
-  }
+    try {
+      await saveReport(newReport);
+    } catch (error) {
+      showToast(error.message || 'Could not save the report. Please try again.', 'error');
+      return;
+    }
 
-  // Update UI and show confirmation modal
-  showSuccessModal(newReport);
-  renderRecentReports();
-  showToast(`Report ${uniqueId} saved successfully!`, 'success');
-});
+    // Update UI and show confirmation modal
+    showSuccessModal(newReport);
+    renderRecentReports();
+    showToast(`Report ${uniqueId} saved successfully!`, 'success');
+  });
+}
 
 /**
  * Populates and shows the success modal dialog

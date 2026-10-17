@@ -73,6 +73,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error(error);
   }
   renderRecentIssues();
+
+  try {
+    const student = await getAuthenticatedStudent();
+    if (student && student.studentName && studentNameInput && !studentNameInput.value) {
+      studentNameInput.placeholder = `Logged in as: ${student.studentName}`;
+    }
+  } catch (err) {
+    console.warn('Initialization note:', err);
+  }
 });
 
 /**
@@ -324,11 +333,87 @@ function getStoredReports() {
 }
 
 /**
- * Saves report to localStorage
+ * Ensures Firebase is fully initialized and retrieves the current authenticated student
+ */
+async function getAuthenticatedStudent() {
+  if (typeof firebase === 'undefined') {
+    throw new Error('Firebase SDK is not loaded. Please check your network connection.');
+  }
+
+  // Ensure Firebase app is initialized
+  if (!firebase.apps.length && window.CampusCareFirebase && CampusCareFirebase.config) {
+    firebase.initializeApp(CampusCareFirebase.config);
+  }
+
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // Wait for auth state to be resolved
+  const user = await new Promise((resolve) => {
+    const unsub = auth.onAuthStateChanged(u => {
+      unsub();
+      resolve(u);
+    }, () => resolve(null));
+  });
+
+  let profile = null;
+  if (user) {
+    try {
+      const snap = await db.collection('users').doc(user.uid).get();
+      if (snap.exists) {
+        profile = snap.data();
+      }
+    } catch (e) {
+      console.warn('Could not read user profile from Firestore:', e);
+    }
+  }
+
+  // Fallback to local session if auth state is delayed or in demo mode
+  let session = null;
+  try {
+    const raw = sessionStorage.getItem('campusCare_session') || localStorage.getItem('campusCare_session');
+    if (raw) session = JSON.parse(raw);
+  } catch (_) {}
+
+  const uid = (user && user.uid) || (session && session.uid) || null;
+  const studentID = (profile && (profile.studentID || profile.studentId)) || (session && (session.studentID || session.studentId)) || uid || '';
+  const studentName = (profile && (profile.name || profile.fullName)) || (session && session.name) || (user && user.displayName) || (user && user.email) || '';
+
+  return {
+    user,
+    profile,
+    uid,
+    studentID,
+    studentName,
+    db
+  };
+}
+
+/**
+ * Saves report to Firestore 'reports' collection and updates local storage
  * @param {Object} report 
  */
 async function saveReport(report) {
-  return CampusCareFirebase.createReport(report);
+  // Use CampusCareFirebase.createReport if available
+  if (window.CampusCareFirebase && CampusCareFirebase.createReport) {
+    return await CampusCareFirebase.createReport(report);
+  }
+
+  // Fallback direct Firestore write
+  if (typeof firebase === 'undefined' || !firebase.firestore) {
+    throw new Error('Firebase Firestore is not initialized.');
+  }
+
+  const db = firebase.firestore();
+  await db.collection('reports').doc(String(report.id)).set(report);
+
+  // Update local cache
+  try {
+    const existing = JSON.parse(localStorage.getItem(STORAGE_KEY_REPORTS) || '[]');
+    localStorage.setItem(STORAGE_KEY_REPORTS, JSON.stringify([report, ...existing.filter(i => i.id !== report.id)]));
+  } catch (_) {}
+
+  return report;
 }
 
 /**
@@ -428,63 +513,107 @@ function clearErrors() {
 /**
  * Handles form submission with automated routing
  */
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-  if (!validateForm()) {
-    showToast('Please fix the errors before submitting.', 'error');
-    return;
-  }
+    const errBanner = document.getElementById('formSubmitError');
+    if (errBanner) {
+      errBanner.style.display = 'none';
+      errBanner.textContent = '';
+    }
 
-  const uniqueId = generateUniqueIssueId();
-  const selectedCat = categorySelect.value;
-  const assignedDepartment = DEPARTMENT_MAP[selectedCat] || 'Campus Facilities & Administration';
-  
-  const createdTimestamp = new Date().toISOString();
-  const assignedTimestamp = new Date(Date.now() + 500).toISOString();
-  const todayDate = new Date().toISOString().split('T')[0];
+    if (!validateForm()) {
+      showToast('Please fix the errors before submitting.', 'error');
+      return;
+    }
 
-  // Create issue report object with Open status -> auto-assigned to responsible department
-  const newReport = {
-    id: uniqueId,
-    type: 'issue',
-    itemName: `${selectedCat} Issue`,
-    category: selectedCat,
-    date: todayDate,
-    location: locationInput.value.trim(),
-    description: descriptionInput.value.trim(),
-    department: assignedDepartment,
-    studentName: studentNameInput.value.trim() || 'Anonymous Student',
-    phone: phoneNumberInput.value.trim(),
-    contact: phoneNumberInput.value.trim(),
-    status: 'Assigned', // Automatically updated to Assigned
-    createdAt: createdTimestamp,
-    history: [
-      {
-        status: 'Open',
-        timestamp: createdTimestamp,
-        remark: 'Campus issue report logged by student'
-      },
-      {
-        status: 'Assigned',
-        timestamp: assignedTimestamp,
-        remark: `Automatically assigned to ${assignedDepartment} for inspection and resolution`
+    const submitBtn = document.getElementById('submitBtn');
+    const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+        <div style="display:inline-block; width:16px; height:16px; border:2px solid #ffffff; border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px; vertical-align:middle;"></div>
+        <span>Saving to Firestore...</span>
+      `;
+    }
+
+    try {
+      // 1. Ensure Firebase is ready and get logged-in student info
+      const student = await getAuthenticatedStudent();
+      if (!student || !student.user) {
+        throw new Error('You must be signed in with a student account to submit a report. Please log in first.');
       }
-    ]
-  };
 
-  try {
-    await saveReport(newReport);
-  } catch (error) {
-    showToast(error.message || 'Could not save the report. Please try again.', 'error');
-    return;
-  }
+      const uniqueId = generateUniqueIssueId();
+      const selectedCat = categorySelect.value;
+      const assignedDepartment = DEPARTMENT_MAP[selectedCat] || 'Campus Facilities & Administration';
+      
+      const createdTimestamp = new Date().toISOString();
+      const todayDate = new Date().toISOString().split('T')[0];
 
-  // Update UI and show confirmation modal
-  showSuccessModal(newReport);
-  renderRecentIssues();
-  showToast(`Issue ${uniqueId} logged and assigned to ${assignedDepartment}!`, 'success');
-});
+      const enteredName = studentNameInput ? studentNameInput.value.trim() : '';
+      const finalStudentName = enteredName || student.studentName || 'Student';
+
+      // 2. Create issue report object with attached user credentials
+      const newReport = {
+        id: uniqueId,
+        reportId: uniqueId,
+        type: 'issue',
+        itemName: `${selectedCat} Issue`,
+        category: selectedCat,
+        date: todayDate,
+        location: locationInput.value.trim(),
+        description: descriptionInput.value.trim(),
+        department: assignedDepartment,
+        studentName: finalStudentName,
+        studentID: student.studentID || student.uid,
+        studentId: student.studentID || student.uid,
+        uid: student.uid,
+        ownerUid: student.uid,
+        phone: phoneNumberInput.value.trim(),
+        contact: phoneNumberInput.value.trim(),
+        status: 'OPEN', // Standardized default status
+        createdAt: createdTimestamp,
+        history: [
+          {
+            status: 'OPEN',
+            timestamp: createdTimestamp,
+            remark: `Campus issue report logged for ${assignedDepartment} (Pending Admin review)`
+          }
+        ]
+      };
+
+      // 3. Save report to Firestore
+      await saveReport(newReport);
+
+      // 4. Clear form upon successful save
+      form.reset();
+      if (deptPreview) deptPreview.style.display = 'none';
+      clearErrors();
+
+      // 5. Update UI, display confirmation modal and success toast
+      showSuccessModal(newReport);
+      renderRecentIssues();
+      showToast(`Issue ${uniqueId} logged and assigned to ${assignedDepartment}!`, 'success');
+    } catch (error) {
+      console.error('Error saving issue report to Firestore:', error);
+      const errorMsg = error.message || 'Could not save the report to Firestore. Please try again.';
+      if (errBanner) {
+        errBanner.textContent = errorMsg;
+        errBanner.style.display = 'block';
+        errBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      showToast(errorMsg, 'error');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
+      }
+    }
+  });
+}
 
 /**
  * Populates and shows the success modal dialog
@@ -557,22 +686,47 @@ function renderRecentIssues() {
     return;
   }
 
-  recentIssuesList.innerHTML = issueReports.map(report => `
-    <div class="recent-item-card">
-      <div class="recent-card-top">
-        <span class="recent-id">${escapeHtml(report.id)}</span>
-        <a href="track.html?id=${encodeURIComponent(report.id)}" class="badge badge-assigned" style="text-decoration:none; cursor:pointer;" title="Click to track status">
-          ${escapeHtml(report.status)} &rarr;
-        </a>
+  recentIssuesList.innerHTML = issueReports.map(report => {
+    const norm = normalizeStatus(report.status);
+    const badgeCls = getStatusBadgeClass(norm);
+    return `
+      <div class="recent-item-card">
+        <div class="recent-card-top">
+          <span class="recent-id">${escapeHtml(report.id)}</span>
+          <a href="track.html?id=${encodeURIComponent(report.id)}" class="badge ${badgeCls}" style="text-decoration:none; cursor:pointer;" title="Click to track status">
+            ${escapeHtml(norm)} &rarr;
+          </a>
+        </div>
+        <div class="recent-name">${escapeHtml(report.itemName)}</div>
+        <div class="recent-dept">Dept: ${escapeHtml(report.department || 'Facilities')}</div>
+        <div class="recent-meta">
+          <span>Location: ${escapeHtml(report.location)}</span>
+          <span>Date: ${escapeHtml(report.date)}</span>
+        </div>
       </div>
-      <div class="recent-name">${escapeHtml(report.itemName)}</div>
-      <div class="recent-dept">Dept: ${escapeHtml(report.department || 'Facilities')}</div>
-      <div class="recent-meta">
-        <span>Location: ${escapeHtml(report.location)}</span>
-        <span>Date: ${escapeHtml(report.date)}</span>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+}
+
+function normalizeStatus(status) {
+  if (!status) return 'OPEN';
+  const s = String(status).trim().toUpperCase();
+  if (s === 'OPEN') return 'OPEN';
+  if (s.includes('MATCH')) return 'MATCH FOUND';
+  if (s.includes('PROGRESS') || s.includes('ASSIGN')) return 'IN PROGRESS';
+  if (s.includes('RESOLV') || s.includes('RETURN') || s.includes('CLAIM') || s.includes('CLOSE') || s.includes('EXPIRE')) return 'RESOLVED';
+  return 'OPEN';
+}
+
+function getStatusBadgeClass(status) {
+  const norm = normalizeStatus(status);
+  switch (norm) {
+    case 'OPEN': return 'badge-open';
+    case 'MATCH FOUND': return 'badge-match';
+    case 'IN PROGRESS': return 'badge-in-progress';
+    case 'RESOLVED': return 'badge-resolved';
+    default: return 'badge-open';
+  }
 }
 
 /**
@@ -589,14 +743,26 @@ function escapeHtml(str) {
 }
 
 /**
- * Displays brief toast notification
+ * Displays brief toast notification with prominent styling for errors and success
  */
 function showToast(message, type = 'info') {
+  if (!toastContainer) return;
   const toast = document.createElement('div');
   toast.className = 'toast';
   
+  if (type === 'error') {
+    toast.style.background = '#b91c1c';
+    toast.style.color = '#ffffff';
+    toast.style.boxShadow = '0 8px 24px rgba(185, 28, 28, 0.4)';
+    toast.style.border = '1px solid #ef4444';
+  } else if (type === 'success') {
+    toast.style.background = '#15803d';
+    toast.style.color = '#ffffff';
+    toast.style.boxShadow = '0 8px 24px rgba(21, 128, 61, 0.35)';
+    toast.style.border = '1px solid #22c55e';
+  }
+
   toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
-  
   toastContainer.appendChild(toast);
   
   setTimeout(() => {
@@ -608,5 +774,5 @@ function showToast(message, type = 'info') {
         toast.parentNode.removeChild(toast);
       }
     }, 300);
-  }, 3500);
+  }, 4500);
 }

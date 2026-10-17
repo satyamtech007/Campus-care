@@ -15,18 +15,16 @@
 
   const auth = firebase.auth();
   const db = firebase.firestore();
-  let userReady;
-
   function currentUser() {
-    if (!userReady) {
-      userReady = new Promise(resolve => {
-        const unsubscribe = auth.onAuthStateChanged(user => {
-          unsubscribe();
-          resolve(user);
-        }, () => resolve(null));
-      });
+    if (auth.currentUser) {
+      return Promise.resolve(auth.currentUser);
     }
-    return userReady;
+    return new Promise(resolve => {
+      const unsubscribe = auth.onAuthStateChanged(user => {
+        unsubscribe();
+        resolve(user);
+      }, () => resolve(null));
+    });
   }
 
   async function profileFor(user) {
@@ -81,9 +79,32 @@
   }
 
   async function createReport(report) {
-    const account = await requireRole('student');
-    if (!account) throw new Error('Sign in with a student account to submit a report.');
-    const saved = { ...report, id: String(report.id), ownerUid: account.user.uid };
+    const user = await currentUser();
+    if (!user) {
+      throw new Error('Please sign in with your student account before submitting a report.');
+    }
+    const profile = await profileFor(user);
+    if (profile && profile.role && profile.role !== 'student') {
+      throw new Error(`Your account role is ${profile.role}. Only student accounts can submit reports.`);
+    }
+
+    const uid = user.uid;
+    const studentID = (profile && (profile.studentID || profile.studentId)) || report.studentID || report.studentId || uid;
+    const studentName = (report.studentName && report.studentName !== 'Anonymous Student' && report.studentName !== 'Anonymous Finder')
+      ? report.studentName
+      : ((profile && (profile.name || profile.fullName)) || user.displayName || user.email || 'Student');
+
+    const saved = {
+      ...report,
+      id: String(report.id),
+      reportId: String(report.id),
+      ownerUid: uid,
+      uid: uid,
+      studentID: studentID,
+      studentId: studentID,
+      studentName: studentName
+    };
+
     await db.collection('reports').doc(saved.id).set(saved);
     const existing = JSON.parse(localStorage.getItem('campusCare_reports') || '[]');
     cacheReports([saved, ...existing.filter(item => item.id !== saved.id)]);

@@ -49,30 +49,128 @@ if (navToggle && siteNav) {
 // User Logout handler
 const userLogoutBtn = document.getElementById('userLogoutBtn');
 if (userLogoutBtn) {
-  userLogoutBtn.addEventListener('click', async () => {
-    localStorage.removeItem('campusCare_session');
-    sessionStorage.removeItem('campusCare_session');
-    localStorage.removeItem('campusCare_reports');
-    await CampusCareFirebase.auth.signOut();
-    window.location.href = 'index.html?logout=true';
+  userLogoutBtn.addEventListener('click', () => {
+    showLogoutModal({
+      title: 'Log Out of Student Account?',
+      message: 'You are about to log out of your student session. Any unsaved form progress will be discarded.',
+      onConfirm: async () => {
+        try {
+          localStorage.removeItem('campusCare_session');
+          sessionStorage.removeItem('campusCare_session');
+          if (window.CampusCareFirebase && CampusCareFirebase.auth) {
+            await CampusCareFirebase.auth.signOut();
+          }
+        } catch (e) {
+          console.warn('Sign out warning:', e);
+        }
+        window.location.href = 'index.html?logout=true';
+      }
+    });
   });
+}
+
+/**
+ * Universal logout confirmation modal
+ */
+function showLogoutModal({ title, message, onConfirm }) {
+  let modal = document.getElementById('ccLogoutModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'ccLogoutModal';
+    modal.className = 'modal-overlay';
+    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'ccLogoutTitle');
+    modal.innerHTML = `
+      <div class="modal-dialog" style="max-width: 440px; text-align: center; padding: 2rem 1.75rem;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--color-danger-soft, #fef2f2); border: 2px solid var(--color-danger-border, #fecaca); color: var(--color-danger, #ef4444); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </div>
+        <h3 class="modal-title" id="ccLogoutTitle" style="font-size: 1.35rem; margin-bottom: 0.5rem;"></h3>
+        <p class="modal-subtitle" id="ccLogoutDesc" style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;"></p>
+        <div class="modal-actions" style="display: flex; gap: 0.75rem; justify-content: center;">
+          <button type="button" class="btn btn-secondary" id="ccCancelLogoutBtn" style="flex: 1; min-height: 44px;">
+            <span>Cancel</span>
+          </button>
+          <button type="button" class="btn" id="ccConfirmLogoutBtn" style="flex: 1; min-height: 44px; background: var(--color-danger, #ef4444); color: #ffffff; border: 1px solid var(--color-danger, #ef4444); font-weight: 600; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);">
+            <span>Log Out</span>
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  const titleElem = modal.querySelector('#ccLogoutTitle');
+  const descElem = modal.querySelector('#ccLogoutDesc');
+  const cancelBtn = modal.querySelector('#ccCancelLogoutBtn');
+  const confirmBtn = modal.querySelector('#ccConfirmLogoutBtn');
+
+  titleElem.textContent = title;
+  descElem.textContent = message;
+  confirmBtn.disabled = false;
+  confirmBtn.innerHTML = '<span>Log Out</span>';
+  cancelBtn.disabled = false;
+
+  function closeModal() {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', onKeyDown);
+  }
+
+  function onKeyDown(e) {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+  }
+
+  cancelBtn.onclick = () => {
+    closeModal();
+  };
+
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  };
+
+  confirmBtn.onclick = async () => {
+    confirmBtn.disabled = true;
+    cancelBtn.disabled = true;
+    confirmBtn.innerHTML = '<span>Logging out...</span>';
+    if (onConfirm) {
+      await onConfirm();
+    }
+    closeModal();
+  };
+
+  document.addEventListener('keydown', onKeyDown);
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  confirmBtn.focus();
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
   initThemeToggle();
   try {
-    await CampusCareFirebase.loadMyReports();
+    if (window.CampusCareFirebase && CampusCareFirebase.loadMyReports) {
+      await CampusCareFirebase.loadMyReports();
+    }
   } catch (error) {
-    showToast('Could not load your reports from Firebase. Please refresh and try again.', 'error');
-    console.error(error);
+    console.warn('Initial loadMyReports warning:', error);
   }
 
   renderQuickSuggestions();
 
-  // Check URL parameters for ?id=LOST-XXXXX
+  // Check URL parameters for ?id=... or ?reportId=... or ?reportID=...
   const urlParams = new URLSearchParams(window.location.search);
-  const idFromUrl = urlParams.get('id');
+  const idFromUrl = urlParams.get('id') || urlParams.get('reportId') || urlParams.get('reportID');
   if (idFromUrl) {
     trackInput.value = idFromUrl.trim();
     clearSearchBtn.style.display = 'flex';
@@ -573,6 +671,165 @@ function renderQuickSuggestions() {
 /**
  * Handles Track Form Submission
  */
+/**
+ * Searches Firestore for a report across:
+ * 1. Single 'reports' collection (by doc ID, and where reportId / reportID / id equals query)
+ * 2. Separate collections: 'lostItems', 'foundItems', 'campusIssues' (and variations)
+ * Returns normalized report object or null.
+ */
+async function fetchReportFromFirestore(enteredId) {
+  if (typeof firebase === 'undefined' || !firebase.firestore) {
+    return null;
+  }
+
+  const db = firebase.firestore();
+  const rawId = enteredId.trim();
+  const upperId = rawId.toUpperCase();
+  const lowerId = rawId.toLowerCase();
+
+  // Distinct variations to match against
+  const candidateIds = Array.from(new Set([rawId, upperId, lowerId])).filter(Boolean);
+
+  function normalizeDoc(doc, fallbackType = '') {
+    if (!doc || !doc.exists) return null;
+    const data = doc.data() || {};
+    const id = data.reportId || data.reportID || data.id || doc.id;
+    const type = data.type || fallbackType || (id.toUpperCase().startsWith('LOST') ? 'lost' : id.toUpperCase().startsWith('FOUND') ? 'found' : 'issue');
+    const title = data.itemName || data.title || data.category || 'Campus Report';
+    const location = data.location || data.room || data.area || 'Campus';
+    const status = normalizeStatus(data.status || 'OPEN');
+    const dateSubmitted = data.dateSubmitted || data.createdAt || data.date || data.dateLost || data.dateFound || new Date().toISOString();
+    const studentName = data.studentName || data.name || data.reporterName || (data.ownerUid ? 'Logged-in Student' : 'Anonymous');
+    const description = data.description || data.details || '';
+    const department = data.department || data.assignedDepartment || '';
+
+    // History array
+    let history = Array.isArray(data.history) && data.history.length > 0 ? [...data.history] : [];
+    if (history.length === 0) {
+      history.push({
+        status: status,
+        timestamp: dateSubmitted,
+        remark: `Report ${id} logged with status ${status}`
+      });
+    }
+
+    return {
+      ...data,
+      id,
+      reportId: id,
+      type,
+      itemName: title,
+      title,
+      status,
+      location,
+      dateSubmitted,
+      date: typeof dateSubmitted === 'string' && dateSubmitted.includes('T') ? dateSubmitted.split('T')[0] : dateSubmitted,
+      createdAt: data.createdAt || dateSubmitted,
+      studentName,
+      description,
+      department,
+      history
+    };
+  }
+
+  // 1. Search primary single collection: 'reports'
+  try {
+    for (const cId of candidateIds) {
+      // Direct doc ID
+      try {
+        const docSnap = await db.collection('reports').doc(cId).get();
+        if (docSnap.exists) {
+          return normalizeDoc(docSnap);
+        }
+      } catch (e) {}
+
+      // where('reportId', '==', cId)
+      try {
+        const qSnap = await db.collection('reports').where('reportId', '==', cId).limit(1).get();
+        if (!qSnap.empty) {
+          return normalizeDoc(qSnap.docs[0]);
+        }
+      } catch (e) {}
+
+      // where('reportID', '==', cId)
+      try {
+        const qSnap = await db.collection('reports').where('reportID', '==', cId).limit(1).get();
+        if (!qSnap.empty) {
+          return normalizeDoc(qSnap.docs[0]);
+        }
+      } catch (e) {}
+
+      // where('id', '==', cId)
+      try {
+        const qSnap = await db.collection('reports').where('id', '==', cId).limit(1).get();
+        if (!qSnap.empty) {
+          return normalizeDoc(qSnap.docs[0]);
+        }
+      } catch (e) {}
+    }
+  } catch (err) {
+    console.warn('Querying single reports collection error:', err);
+  }
+
+  // 2. Search separate collections: 'lostItems', 'foundItems', 'campusIssues'
+  const separateCollections = [
+    { name: 'lostItems', type: 'lost' },
+    { name: 'foundItems', type: 'found' },
+    { name: 'campusIssues', type: 'issue' },
+    { name: 'lost_items', type: 'lost' },
+    { name: 'found_items', type: 'found' },
+    { name: 'campus_issues', type: 'issue' },
+    { name: 'issues', type: 'issue' },
+    { name: 'lost', type: 'lost' },
+    { name: 'found', type: 'found' }
+  ];
+
+  for (const col of separateCollections) {
+    try {
+      for (const cId of candidateIds) {
+        // Direct doc
+        try {
+          const docSnap = await db.collection(col.name).doc(cId).get();
+          if (docSnap.exists) {
+            return normalizeDoc(docSnap, col.type);
+          }
+        } catch (e) {}
+
+        // where('reportId', '==', cId)
+        try {
+          const qSnap = await db.collection(col.name).where('reportId', '==', cId).limit(1).get();
+          if (!qSnap.empty) {
+            return normalizeDoc(qSnap.docs[0], col.type);
+          }
+        } catch (e) {}
+
+        // where('reportID', '==', cId)
+        try {
+          const qSnap = await db.collection(col.name).where('reportID', '==', cId).limit(1).get();
+          if (!qSnap.empty) {
+            return normalizeDoc(qSnap.docs[0], col.type);
+          }
+        } catch (e) {}
+
+        // where('id', '==', cId)
+        try {
+          const qSnap = await db.collection(col.name).where('id', '==', cId).limit(1).get();
+          if (!qSnap.empty) {
+            return normalizeDoc(qSnap.docs[0], col.type);
+          }
+        } catch (e) {}
+      }
+    } catch (err) {
+      // If collection doesn't exist, continue smoothly
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Handles Track Form Submission
+ */
 trackForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const query = trackInput.value.trim();
@@ -583,36 +840,85 @@ trackForm.addEventListener('submit', async (e) => {
     return;
   }
 
-  const report = await CampusCareFirebase.getMyReport(query.toUpperCase());
-  if (report) {
-    const reports = getStoredReports();
-    localStorage.setItem(STORAGE_KEY_REPORTS, JSON.stringify([report, ...reports.filter(item => item.id !== report.id)]));
-  }
-  performTrack(query);
+  clearSearchBtn.style.display = 'flex';
+  await performTrack(query);
 });
 
 /**
- * Executes lookup by report ID
+ * Executes lookup by report ID across Firestore and Local Storage
  * @param {string} searchId 
  */
-function performTrack(searchId) {
+async function performTrack(searchId) {
   hideInputError();
-  const normalizedSearch = searchId.trim().toUpperCase();
-  const allReports = getStoredReports();
+  if (!searchId || !searchId.trim()) {
+    showInputError('Please enter a Report ID to search (e.g. LOST-12345)');
+    return;
+  }
 
-  // Find report by case-insensitive matching
-  const foundReport = allReports.find(r => r.id && r.id.toUpperCase() === normalizedSearch);
+  const query = searchId.trim();
+  const normalizedSearch = query.toUpperCase();
+
+  // Show loading state on track button
+  const submitBtn = document.getElementById('trackSubmitBtn');
+  const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin">
+        <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+        <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
+      </svg>
+      <span>Searching...</span>
+    `;
+  }
+
+  let foundReport = null;
+
+  // 1. Query Firestore first across single & separate collections
+  try {
+    foundReport = await fetchReportFromFirestore(query);
+  } catch (err) {
+    console.warn('Firestore fetch error:', err);
+  }
+
+  // 2. Fallback to localStorage if not found in Firestore
+  if (!foundReport) {
+    const allReports = getStoredReports();
+    foundReport = allReports.find(r => 
+      (r.id && r.id.toUpperCase() === normalizedSearch) ||
+      (r.reportId && r.reportId.toUpperCase() === normalizedSearch) ||
+      (r.reportID && r.reportID.toUpperCase() === normalizedSearch)
+    );
+  }
+
+  // Restore track button state
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalBtnHtml;
+  }
 
   if (!foundReport) {
-    // Hide results & show Error / Not Found state
+    // Hide results & show Error / Not Found state with clear message
     trackResultContainer.style.display = 'none';
     notFoundState.style.display = 'block';
-    notFoundMessage.innerHTML = `No report found matching ID <strong class="highlight-id">${escapeHtml(searchId)}</strong>. Please verify the ID and try again.`;
+    notFoundMessage.textContent = 'No report found with this ID. Please check and try again.';
     
     // Smooth scroll to error state
     notFoundState.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     return;
   }
+
+  // Cache found report in localStorage
+  try {
+    const reports = getStoredReports();
+    const filtered = reports.filter(item => 
+      item.id !== foundReport.id && 
+      item.reportId !== foundReport.id && 
+      item.reportID !== foundReport.id
+    );
+    localStorage.setItem(STORAGE_KEY_REPORTS, JSON.stringify([foundReport, ...filtered]));
+    renderQuickSuggestions();
+  } catch (e) {}
 
   // Found -> Hide error, show result
   notFoundState.style.display = 'none';
@@ -661,8 +967,8 @@ function renderReportDetails(report) {
     resultSubtitle.textContent = report.type === 'issue' ? 'Campus Maintenance Report' : report.type === 'found' ? 'Found Item Report' : 'Lost Item Report';
   }
 
-  // Status Badge
-  const currentStatus = report.status || 'Open';
+  // Status Badge - Standardized 4 Statuses
+  const currentStatus = normalizeStatus(report.status);
   resultStatusBadge.textContent = currentStatus;
   resultStatusBadge.className = `badge ${getStatusBadgeClass(currentStatus)} badge-xl`;
 
@@ -671,21 +977,42 @@ function renderReportDetails(report) {
 }
 
 /**
- * Maps status string to badge CSS class
+ * Normalizes any report status to one of the 4 canonical statuses:
+ * OPEN, MATCH FOUND, IN PROGRESS, RESOLVED
+ */
+function normalizeStatus(status) {
+  if (!status) return 'OPEN';
+  const s = String(status).trim().toUpperCase();
+  if (s === 'OPEN') return 'OPEN';
+  if (s.includes('MATCH')) return 'MATCH FOUND';
+  if (s.includes('PROGRESS') || s.includes('ASSIGN')) return 'IN PROGRESS';
+  if (s.includes('RESOLV') || s.includes('RETURN') || s.includes('CLAIM') || s.includes('CLOSE') || s.includes('EXPIRE')) return 'RESOLVED';
+  return 'OPEN';
+}
+
+/**
+ * Maps status string to badge CSS class:
+ * OPEN -> badge-open (Red)
+ * MATCH FOUND -> badge-match (Yellow)
+ * IN PROGRESS -> badge-in-progress (Purple)
+ * RESOLVED -> badge-resolved (Green)
  * @param {string} status 
  * @returns {string} CSS class
  */
 function getStatusBadgeClass(status) {
-  if (!status) return 'badge-open';
-  const s = status.toLowerCase();
-  if (s.includes('open')) return 'badge-open';
-  if (s.includes('assign')) return 'badge-assigned';
-  if (s.includes('progress')) return 'badge-in-progress';
-  if (s.includes('match')) return 'badge-match';
-  if (s.includes('return') || s.includes('claim')) return 'badge-returned';
-  if (s.includes('resolv')) return 'badge-resolved';
-  if (s.includes('expire') || s.includes('close')) return 'badge-expired';
-  return 'badge-open';
+  const norm = normalizeStatus(status);
+  switch (norm) {
+    case 'OPEN':
+      return 'badge-open';
+    case 'MATCH FOUND':
+      return 'badge-match';
+    case 'IN PROGRESS':
+      return 'badge-in-progress';
+    case 'RESOLVED':
+      return 'badge-resolved';
+    default:
+      return 'badge-open';
+  }
 }
 
 /**
@@ -701,9 +1028,9 @@ function renderHistoryTimeline(report) {
     // Fallback if legacy item without history array
     historyList = [
       {
-        status: report.status || 'Open',
+        status: report.status || 'OPEN',
         timestamp: report.createdAt || new Date().toISOString(),
-        remark: 'Lost item report submitted by student'
+        remark: 'Report submitted by student'
       }
     ];
   }
@@ -718,7 +1045,8 @@ function renderHistoryTimeline(report) {
 
   timelineContainer.innerHTML = sortedHistory.map((entry, index) => {
     const isLatest = index === 0;
-    const badgeClass = getStatusBadgeClass(entry.status);
+    const normStatus = normalizeStatus(entry.status);
+    const badgeClass = getStatusBadgeClass(normStatus);
     const formattedTime = formatDateTime(entry.timestamp);
 
     return `
@@ -730,7 +1058,7 @@ function renderHistoryTimeline(report) {
         <div class="timeline-body">
           <div class="timeline-top">
             <div class="timeline-status-group">
-              <span class="badge ${badgeClass}">${escapeHtml(entry.status || 'Status Update')}</span>
+              <span class="badge ${badgeClass}">${escapeHtml(normStatus)}</span>
               ${isLatest ? '<span class="latest-tag">Latest Update</span>' : ''}
             </div>
             <time class="timeline-time" datetime="${escapeHtml(entry.timestamp)}">

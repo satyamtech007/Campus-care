@@ -141,16 +141,16 @@ function initializeDemoReportsIfEmpty() {
         studentName: 'Demo Student (Fake User)',
         phone: '9000000001',
         contact: '9000000001',
-        status: 'Match Found',
+        status: 'MATCH FOUND',
         createdAt: getDemoRelativeISO(-3, 2),
         history: [
           {
-            status: 'Open',
+            status: 'OPEN',
             timestamp: getDemoRelativeISO(-3, 2),
-            remark: 'Lost item report submitted by student'
+            remark: 'Report submitted and pending Admin review'
           },
           {
-            status: 'Match Found',
+            status: 'MATCH FOUND',
             timestamp: getDemoRelativeISO(-2, 4),
             remark: 'Potential matching item found (FOUND-20202: Black wireless earbuds). Handed to administration for verification.'
           }
@@ -170,16 +170,16 @@ function initializeDemoReportsIfEmpty() {
         contact: '9000000002',
         email: 'samaritan.demo@campus.test',
         keptAt: 'Handed to Security Desk',
-        status: 'Match Found',
+        status: 'MATCH FOUND',
         createdAt: getDemoRelativeISO(-2, 3),
         history: [
           {
-            status: 'Open',
+            status: 'OPEN',
             timestamp: getDemoRelativeISO(-2, 3),
-            remark: 'Found item report submitted by finder'
+            remark: 'Report submitted and pending Admin review'
           },
           {
-            status: 'Match Found',
+            status: 'MATCH FOUND',
             timestamp: getDemoRelativeISO(-2, 4),
             remark: 'Potential matching lost report found (LOST-10101: Black wireless earbuds). Handed to administration for verification.'
           }
@@ -196,13 +196,13 @@ function initializeDemoReportsIfEmpty() {
         studentName: 'Jordan Lee (Fake User)',
         phone: '9000000003',
         contact: '9000000003',
-        status: 'Open',
+        status: 'OPEN',
         createdAt: getDemoRelativeISO(-1, 1),
         history: [
           {
-            status: 'Open',
+            status: 'OPEN',
             timestamp: getDemoRelativeISO(-1, 1),
-            remark: 'Lost item report submitted by student'
+            remark: 'Report submitted and pending Admin review'
           }
         ]
       },
@@ -218,21 +218,16 @@ function initializeDemoReportsIfEmpty() {
         studentName: 'Morgan Taylor (Fake User)',
         phone: '9000000004',
         contact: '9000000004',
-        status: 'In Progress',
+        status: 'IN PROGRESS',
         createdAt: getDemoRelativeISO(-4, 2),
         history: [
           {
-            status: 'Open',
+            status: 'OPEN',
             timestamp: getDemoRelativeISO(-4, 2),
-            remark: 'Campus issue report logged by student'
+            remark: 'Report submitted and pending Admin review'
           },
           {
-            status: 'Assigned',
-            timestamp: getDemoRelativeISO(-4, 3),
-            remark: 'Automatically assigned to Electrical Maintenance & Power Division for inspection and resolution'
-          },
-          {
-            status: 'In Progress',
+            status: 'IN PROGRESS',
             timestamp: getDemoRelativeISO(-2, 5),
             remark: 'Electrician dispatched. Replacement ballast ordered and socket wiring is undergoing repair.'
           }
@@ -250,26 +245,21 @@ function initializeDemoReportsIfEmpty() {
         studentName: 'Sam Rivera (Fake User)',
         phone: '9000000005',
         contact: '9000000005',
-        status: 'Resolved',
+        status: 'RESOLVED',
         createdAt: getDemoRelativeISO(-6, 1),
         history: [
           {
-            status: 'Open',
+            status: 'OPEN',
             timestamp: getDemoRelativeISO(-6, 1),
-            remark: 'Campus issue report logged by student'
+            remark: 'Report submitted and pending Admin review'
           },
           {
-            status: 'Assigned',
-            timestamp: getDemoRelativeISO(-6, 2),
-            remark: 'Automatically assigned to Water Supply & Plumbing Department for inspection and resolution'
-          },
-          {
-            status: 'In Progress',
+            status: 'IN PROGRESS',
             timestamp: getDemoRelativeISO(-5, 4),
             remark: 'Plumbing technician arrived on site. Main valve shut off for gasket replacement.'
           },
           {
-            status: 'Resolved',
+            status: 'RESOLVED',
             timestamp: getDemoRelativeISO(-1, 3),
             remark: 'Defective valve replaced and tested under full water pressure. Leak resolved completely.'
           }

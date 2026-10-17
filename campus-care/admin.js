@@ -166,16 +166,16 @@ function initializeDemoReportsIfEmpty() {
         studentName: 'Demo Student (Fake User)',
         phone: '9000000001',
         contact: '9000000001',
-        status: 'Match Found',
+        status: 'MATCH FOUND',
         createdAt: getDemoRelativeISO(-3, 2),
         history: [
           {
-            status: 'Open',
+            status: 'OPEN',
             timestamp: getDemoRelativeISO(-3, 2),
-            remark: 'Lost item report submitted by student'
+            remark: 'Report submitted and pending Admin review'
           },
           {
-            status: 'Match Found',
+            status: 'MATCH FOUND',
             timestamp: getDemoRelativeISO(-2, 4),
             remark: 'Potential matching item found (FOUND-20202: Black wireless earbuds). Handed to administration for verification.'
           }
@@ -195,16 +195,16 @@ function initializeDemoReportsIfEmpty() {
         contact: '9000000002',
         email: 'samaritan.demo@campus.test',
         keptAt: 'Handed to Security Desk',
-        status: 'Match Found',
+        status: 'MATCH FOUND',
         createdAt: getDemoRelativeISO(-2, 3),
         history: [
           {
-            status: 'Open',
+            status: 'OPEN',
             timestamp: getDemoRelativeISO(-2, 3),
-            remark: 'Found item report submitted by finder'
+            remark: 'Report submitted and pending Admin review'
           },
           {
-            status: 'Match Found',
+            status: 'MATCH FOUND',
             timestamp: getDemoRelativeISO(-2, 4),
             remark: 'Potential matching lost report found (LOST-10101: Black wireless earbuds). Handed to administration for verification.'
           }
@@ -221,13 +221,13 @@ function initializeDemoReportsIfEmpty() {
         studentName: 'Jordan Lee (Fake User)',
         phone: '9000000003',
         contact: '9000000003',
-        status: 'Open',
+        status: 'OPEN',
         createdAt: getDemoRelativeISO(-1, 1),
         history: [
           {
-            status: 'Open',
+            status: 'OPEN',
             timestamp: getDemoRelativeISO(-1, 1),
-            remark: 'Lost item report submitted by student'
+            remark: 'Report submitted and pending Admin review'
           }
         ]
       },
@@ -243,21 +243,16 @@ function initializeDemoReportsIfEmpty() {
         studentName: 'Morgan Taylor (Fake User)',
         phone: '9000000004',
         contact: '9000000004',
-        status: 'In Progress',
+        status: 'IN PROGRESS',
         createdAt: getDemoRelativeISO(-4, 2),
         history: [
           {
-            status: 'Open',
+            status: 'OPEN',
             timestamp: getDemoRelativeISO(-4, 2),
-            remark: 'Campus issue report logged by student'
+            remark: 'Report submitted and pending Admin review'
           },
           {
-            status: 'Assigned',
-            timestamp: getDemoRelativeISO(-4, 3),
-            remark: 'Automatically assigned to Electrical Maintenance & Power Division for inspection and resolution'
-          },
-          {
-            status: 'In Progress',
+            status: 'IN PROGRESS',
             timestamp: getDemoRelativeISO(-2, 5),
             remark: 'Electrician dispatched. Replacement ballast ordered and socket wiring is undergoing repair.'
           }
@@ -275,26 +270,21 @@ function initializeDemoReportsIfEmpty() {
         studentName: 'Sam Rivera (Fake User)',
         phone: '9000000005',
         contact: '9000000005',
-        status: 'Resolved',
+        status: 'RESOLVED',
         createdAt: getDemoRelativeISO(-6, 1),
         history: [
           {
-            status: 'Open',
+            status: 'OPEN',
             timestamp: getDemoRelativeISO(-6, 1),
-            remark: 'Campus issue report logged by student'
+            remark: 'Report submitted and pending Admin review'
           },
           {
-            status: 'Assigned',
-            timestamp: getDemoRelativeISO(-6, 2),
-            remark: 'Automatically assigned to Water Supply & Plumbing Department for inspection and resolution'
-          },
-          {
-            status: 'In Progress',
+            status: 'IN PROGRESS',
             timestamp: getDemoRelativeISO(-5, 4),
             remark: 'Plumbing technician arrived on site. Main valve shut off for gasket replacement.'
           },
           {
-            status: 'Resolved',
+            status: 'RESOLVED',
             timestamp: getDemoRelativeISO(-1, 3),
             remark: 'Defective valve replaced and tested under full water pressure. Leak resolved completely.'
           }
@@ -381,17 +371,200 @@ async function checkAdminAuth() {
   }
 }
 
+// Cache for student users: map of identifier -> student's full name
+let usersCache = new Map();
+
 /**
- * Loads reports from localStorage and updates UI (runs expiry check and matching check first)
+ * Fetches the users collection from Firestore and builds a lookup map
+ * to match student identifier fields (studentID, studentId, uid) with their full name.
+ */
+async function fetchStudentUsersMap() {
+  const map = new Map();
+  try {
+    if (window.CampusCareFirebase && CampusCareFirebase.db) {
+      const usersSnap = await CampusCareFirebase.db.collection('users').get();
+      usersSnap.forEach(doc => {
+        const u = doc.data() || {};
+        const uid = doc.id;
+        const fullName = (u.name || u.fullName || u.displayName || u.studentName || '').trim();
+        if (!fullName) return;
+
+        // Store by studentID (uppercase 'D', as stored in Firestore)
+        if (u.studentID) {
+          const sID = String(u.studentID).trim();
+          map.set(sID, fullName);
+          map.set(sID.toLowerCase(), fullName);
+        }
+        // Store by studentId (lowercase 'd')
+        if (u.studentId) {
+          const sId = String(u.studentId).trim();
+          map.set(sId, fullName);
+          map.set(sId.toLowerCase(), fullName);
+        }
+        // Store by doc.id (uid)
+        if (uid) {
+          const uidStr = String(uid).trim();
+          map.set(uidStr, fullName);
+          map.set(uidStr.toLowerCase(), fullName);
+        }
+        // Store by email
+        if (u.email) {
+          map.set(String(u.email).trim().toLowerCase(), fullName);
+        }
+      });
+    }
+  } catch (err) {
+    console.warn('Could not fetch users collection from Firestore:', err);
+  }
+  return map;
+}
+
+/**
+ * Targeted query for a single user by studentID or uid if not found in batch fetch
+ */
+async function fetchUserByIdentifier(identifier) {
+  if (!identifier) return null;
+  const idStr = String(identifier).trim();
+  if (usersCache.has(idStr)) return usersCache.get(idStr);
+  if (usersCache.has(idStr.toLowerCase())) return usersCache.get(idStr.toLowerCase());
+
+  try {
+    if (window.CampusCareFirebase && CampusCareFirebase.db) {
+      const db = CampusCareFirebase.db;
+      // 1. Try by doc id (uid)
+      try {
+        const docSnap = await db.collection('users').doc(idStr).get();
+        if (docSnap.exists) {
+          const u = docSnap.data() || {};
+          const name = (u.name || u.fullName || u.displayName || u.studentName || '').trim();
+          if (name) {
+            usersCache.set(idStr, name);
+            usersCache.set(idStr.toLowerCase(), name);
+            if (u.studentID) usersCache.set(String(u.studentID).trim(), name);
+            if (u.studentId) usersCache.set(String(u.studentId).trim(), name);
+            return name;
+          }
+        }
+      } catch (_) {}
+
+      // 2. Query where studentID == identifier (uppercase D)
+      try {
+        const qSnapID = await db.collection('users').where('studentID', '==', idStr).limit(1).get();
+        if (!qSnapID.empty) {
+          const u = qSnapID.docs[0].data() || {};
+          const name = (u.name || u.fullName || u.displayName || u.studentName || '').trim();
+          if (name) {
+            usersCache.set(idStr, name);
+            usersCache.set(idStr.toLowerCase(), name);
+            return name;
+          }
+        }
+      } catch (_) {}
+
+      // 3. Query where studentId == identifier (lowercase d)
+      try {
+        const qSnapId = await db.collection('users').where('studentId', '==', idStr).limit(1).get();
+        if (!qSnapId.empty) {
+          const u = qSnapId.docs[0].data() || {};
+          const name = (u.name || u.fullName || u.displayName || u.studentName || '').trim();
+          if (name) {
+            usersCache.set(idStr, name);
+            usersCache.set(idStr.toLowerCase(), name);
+            return name;
+          }
+        }
+      } catch (_) {}
+    }
+  } catch (err) {
+    console.warn(`Could not lookup user for identifier ${idStr}:`, err);
+  }
+  return null;
+}
+
+/**
+ * Resolves the student's full name for a given report object.
+ * Checks studentID (uppercase 'D'), studentId (lowercase 'd'), ownerUid, and users collection.
+ */
+function getStudentNameForReport(report) {
+  if (!report) return 'Anonymous';
+
+  // Check all identifier candidates on the report (studentID, studentId, ownerUid, etc.)
+  const idCandidates = [
+    report.studentID,
+    report.studentId,
+    report.student_id,
+    report.ownerUid,
+    report.userId,
+    report.uid
+  ].filter(Boolean);
+
+  for (const id of idCandidates) {
+    const rawId = String(id).trim();
+    if (usersCache.has(rawId)) {
+      return usersCache.get(rawId);
+    }
+    if (usersCache.has(rawId.toLowerCase())) {
+      return usersCache.get(rawId.toLowerCase());
+    }
+  }
+
+  // Check email
+  if (report.email && usersCache.has(String(report.email).trim().toLowerCase())) {
+    return usersCache.get(String(report.email).trim().toLowerCase());
+  }
+
+  // If report has a genuine non-anonymous name, use it
+  if (report.studentName &&
+      report.studentName !== 'Anonymous Student' &&
+      report.studentName !== 'Anonymous' &&
+      report.studentName.trim() !== '') {
+    return report.studentName.trim();
+  }
+
+  // If we have an identifier (studentID or studentId), display it nicely instead of Anonymous Student
+  const idFallback = report.studentID || report.studentId;
+  if (idFallback) {
+    return `Student (${idFallback})`;
+  }
+
+  return 'Anonymous Student';
+}
+
+/**
+ * Loads reports from Firestore/localStorage and updates UI, fetching student users to resolve full names
  */
 async function loadReports() {
   try {
+    // 1. Fetch user mapping from Firestore users collection
+    usersCache = await fetchStudentUsersMap();
+
+    // 2. Load all reports from Firestore
     allReports = await CampusCareFirebase.loadAllReports();
+
+    // 3. For any reports with studentID/studentId not found in usersCache, perform targeted lookup
+    for (const report of allReports) {
+      const sId = report.studentID || report.studentId || report.ownerUid;
+      if (sId && !usersCache.has(String(sId).trim()) && !usersCache.has(String(sId).trim().toLowerCase())) {
+        await fetchUserByIdentifier(sId);
+      }
+    }
+
+    // 4. Enrich reports with resolved full name
+    allReports.forEach(report => {
+      report.studentName = getStudentNameForReport(report);
+    });
+
     const before = JSON.stringify(allReports);
     checkAndExpireOldItemReports();
     checkAndRunCrossMatching();
     const after = localStorage.getItem(STORAGE_KEY_REPORTS) || '[]';
     allReports = JSON.parse(after);
+
+    // Re-apply resolved student names after reading from cache/storage
+    allReports.forEach(report => {
+      report.studentName = getStudentNameForReport(report);
+    });
+
     if (before !== after) await CampusCareFirebase.saveAdminReports(allReports);
   } catch (e) {
     console.error('Error loading reports:', e);
@@ -498,22 +671,22 @@ function checkAndRunCrossMatching() {
     const now = new Date();
 
     // Eligible candidates are active unclaimed lost and found items
-    const lostReports = reports.filter(r => r.type === 'lost' && (r.status === 'Open' || r.status === 'Match Found'));
-    const foundReports = reports.filter(r => r.type === 'found' && (r.status === 'Open' || r.status === 'Match Found'));
+    const lostReports = reports.filter(r => r.type === 'lost' && (normalizeStatus(r.status) === 'OPEN' || normalizeStatus(r.status) === 'MATCH FOUND'));
+    const foundReports = reports.filter(r => r.type === 'found' && (normalizeStatus(r.status) === 'OPEN' || normalizeStatus(r.status) === 'MATCH FOUND'));
 
     lostReports.forEach(lost => {
       foundReports.forEach(found => {
         if (areReportsMatching(lost, found)) {
           // Update lost report if needed
-          if (lost.status !== 'Match Found') {
-            lost.status = 'Match Found';
+          if (normalizeStatus(lost.status) !== 'MATCH FOUND') {
+            lost.status = 'MATCH FOUND';
             hasUpdates = true;
           }
           if (!Array.isArray(lost.history)) lost.history = [];
           const lostHasEntry = lost.history.some(h => h.remark && h.remark.includes(found.id));
           if (!lostHasEntry) {
             lost.history.push({
-              status: 'Match Found',
+              status: 'MATCH FOUND',
               timestamp: now.toISOString(),
               remark: `Potential matching item found (${found.id}: ${found.itemName || found.category}). Handed to administration for verification.`
             });
@@ -521,15 +694,15 @@ function checkAndRunCrossMatching() {
           }
 
           // Update found report if needed
-          if (found.status !== 'Match Found') {
-            found.status = 'Match Found';
+          if (normalizeStatus(found.status) !== 'MATCH FOUND') {
+            found.status = 'MATCH FOUND';
             hasUpdates = true;
           }
           if (!Array.isArray(found.history)) found.history = [];
           const foundHasEntry = found.history.some(h => h.remark && h.remark.includes(lost.id));
           if (!foundHasEntry) {
             found.history.push({
-              status: 'Match Found',
+              status: 'MATCH FOUND',
               timestamp: now.toISOString(),
               remark: `Potential matching lost report found (${lost.id}: ${lost.itemName || lost.category}). Handed to administration for verification.`
             });
@@ -555,6 +728,20 @@ async function saveReportsToStorage() {
 }
 
 /**
+ * Normalizes any report status to one of the 4 canonical statuses:
+ * OPEN, MATCH FOUND, IN PROGRESS, RESOLVED
+ */
+function normalizeStatus(status) {
+  if (!status) return 'OPEN';
+  const s = String(status).trim().toUpperCase();
+  if (s === 'OPEN') return 'OPEN';
+  if (s.includes('MATCH')) return 'MATCH FOUND';
+  if (s.includes('PROGRESS') || s.includes('ASSIGN')) return 'IN PROGRESS';
+  if (s.includes('RESOLV') || s.includes('RETURN') || s.includes('CLAIM') || s.includes('CLOSE') || s.includes('EXPIRE')) return 'RESOLVED';
+  return 'OPEN';
+}
+
+/**
  * Computes KPI counts and badge indicators
  */
 function updateStats() {
@@ -563,9 +750,9 @@ function updateStats() {
   const foundCount = allReports.filter(r => r.type === 'found').length;
   const issueCount = allReports.filter(r => r.type === 'issue').length;
 
-  const openIssues = allReports.filter(r => r.type === 'issue' && (r.status === 'Open' || r.status === 'Assigned' || r.status === 'In Progress')).length;
-  const foundPending = allReports.filter(r => r.type === 'found' && (r.status === 'Open' || r.status === 'Match Found')).length;
-  const resolvedCount = allReports.filter(r => r.status === 'Resolved' || r.status === 'Returned' || r.status === 'Closed').length;
+  const openIssues = allReports.filter(r => r.type === 'issue' && (normalizeStatus(r.status) === 'OPEN' || normalizeStatus(r.status) === 'IN PROGRESS')).length;
+  const foundPending = allReports.filter(r => r.type === 'found' && (normalizeStatus(r.status) === 'OPEN' || normalizeStatus(r.status) === 'MATCH FOUND')).length;
+  const resolvedCount = allReports.filter(r => normalizeStatus(r.status) === 'RESOLVED').length;
 
   statTotalReports.textContent = total;
   statOpenIssues.textContent = openIssues;
@@ -591,19 +778,22 @@ function renderTable() {
 
   // Filter by Status
   if (currentStatusFilter !== 'all') {
-    filtered = filtered.filter(r => r.status === currentStatusFilter);
+    filtered = filtered.filter(r => normalizeStatus(r.status) === currentStatusFilter);
   }
 
   // Search query filter
   if (currentSearchQuery.trim()) {
     const q = currentSearchQuery.trim().toLowerCase();
     filtered = filtered.filter(r => {
+      const studentName = getStudentNameForReport(r);
+      const studentId = String(r.studentID || r.studentId || '');
       return (
         (r.id && r.id.toLowerCase().includes(q)) ||
         (r.itemName && r.itemName.toLowerCase().includes(q)) ||
         (r.category && r.category.toLowerCase().includes(q)) ||
         (r.location && r.location.toLowerCase().includes(q)) ||
-        (r.studentName && r.studentName.toLowerCase().includes(q)) ||
+        (studentName && studentName.toLowerCase().includes(q)) ||
+        (studentId && studentId.toLowerCase().includes(q)) ||
         (r.department && r.department.toLowerCase().includes(q)) ||
         (r.keptAt && r.keptAt.toLowerCase().includes(q)) ||
         (r.description && r.description.toLowerCase().includes(q))
@@ -625,7 +815,8 @@ function renderTable() {
     const statusClass = getStatusBadgeClass(report.status);
 
     const isFoundItem = report.type === 'found';
-    const isReturnedOrClosed = report.status === 'Returned' || report.status === 'Closed' || report.status === 'Resolved';
+    const isReturnedOrClosed = normalizeStatus(report.status) === 'RESOLVED';
+    const studentFullName = getStudentNameForReport(report);
 
     return `
       <tr class="table-row">
@@ -645,11 +836,11 @@ function renderTable() {
         </td>
         <td>
           ${report.department ? `<div class="dept-name-tag">${escapeHtml(report.department)}</div>` : ''}
-          <div class="table-meta-sub">By: ${escapeHtml(report.studentName || 'Anonymous')}</div>
+          <div class="table-meta-sub">By: <strong>${escapeHtml(studentFullName)}</strong></div>
           <div class="table-meta-sub">Phone: <strong>${escapeHtml(report.phone || (report.contact && report.contact !== 'Not provided' ? report.contact : null) || 'Not provided')}</strong>${report.type === 'found' ? ` &bull; Kept at: <strong>${escapeHtml(report.keptAt || 'Not provided')}</strong>` : ''}</div>
         </td>
         <td>
-          <span class="badge ${statusClass}">${escapeHtml(report.status || 'Open')}</span>
+          <span class="badge ${statusClass}">${escapeHtml(normalizeStatus(report.status))}</span>
         </td>
         <td>
           <div class="table-actions-cell">
@@ -677,19 +868,26 @@ function renderTable() {
 }
 
 /**
- * Maps status string to badge CSS class
+ * Maps status string to badge CSS class:
+ * OPEN -> badge-open (Red)
+ * MATCH FOUND -> badge-match (Yellow)
+ * IN PROGRESS -> badge-in-progress (Purple)
+ * RESOLVED -> badge-resolved (Green)
  */
 function getStatusBadgeClass(status) {
-  if (!status) return 'badge-open';
-  const s = status.toLowerCase();
-  if (s.includes('open')) return 'badge-open';
-  if (s.includes('assign')) return 'badge-assigned';
-  if (s.includes('progress')) return 'badge-in-progress';
-  if (s.includes('match')) return 'badge-match';
-  if (s.includes('return') || s.includes('claim')) return 'badge-returned';
-  if (s.includes('resolv')) return 'badge-resolved';
-  if (s.includes('expire') || s.includes('close')) return 'badge-expired';
-  return 'badge-open';
+  const norm = normalizeStatus(status);
+  switch (norm) {
+    case 'OPEN':
+      return 'badge-open';
+    case 'MATCH FOUND':
+      return 'badge-match';
+    case 'IN PROGRESS':
+      return 'badge-in-progress';
+    case 'RESOLVED':
+      return 'badge-resolved';
+    default:
+      return 'badge-open';
+  }
 }
 
 /**
@@ -726,13 +924,120 @@ function attachFilterListeners() {
     }
   });
 
-  logoutBtn.addEventListener('click', async () => {
-    localStorage.removeItem(STORAGE_KEY_SESSION);
-    sessionStorage.removeItem(STORAGE_KEY_SESSION);
-    localStorage.removeItem(STORAGE_KEY_REPORTS);
-    await CampusCareFirebase.auth.signOut();
-    window.location.href = 'index.html?logout=true';
-  });
+/**
+ * Logout Confirmation Modal Dialog
+ */
+function showLogoutConfirmation({ title = 'Confirm Logout', message = 'Are you sure you want to log out?', onConfirm }) {
+  let modal = document.getElementById('ccLogoutModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'ccLogoutModal';
+    modal.className = 'modal-overlay';
+    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'ccLogoutTitle');
+    modal.innerHTML = `
+      <div class="modal-dialog" style="max-width: 440px; text-align: center; padding: 2rem 1.75rem;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--color-danger-soft, #fef2f2); border: 2px solid var(--color-danger-border, #fecaca); color: var(--color-danger, #ef4444); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </div>
+        <h3 class="modal-title" id="ccLogoutTitle" style="font-size: 1.35rem; margin-bottom: 0.5rem;"></h3>
+        <p class="modal-subtitle" id="ccLogoutDesc" style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;"></p>
+        <div class="modal-actions" style="display: flex; gap: 0.75rem; justify-content: center;">
+          <button type="button" class="btn btn-secondary" id="ccCancelLogoutBtn" style="flex: 1; min-height: 44px;">
+            <span>Cancel</span>
+          </button>
+          <button type="button" class="btn" id="ccConfirmLogoutBtn" style="flex: 1; min-height: 44px; background: var(--color-danger, #ef4444); color: #ffffff; border: 1px solid var(--color-danger, #ef4444); font-weight: 600; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);">
+            <span>Log Out</span>
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  const titleElem = modal.querySelector('#ccLogoutTitle');
+  const descElem = modal.querySelector('#ccLogoutDesc');
+  const cancelBtn = modal.querySelector('#ccCancelLogoutBtn');
+  const confirmBtn = modal.querySelector('#ccConfirmLogoutBtn');
+
+  titleElem.textContent = title;
+  descElem.textContent = message;
+  confirmBtn.disabled = false;
+  confirmBtn.innerHTML = '<span>Log Out</span>';
+  cancelBtn.disabled = false;
+
+  function closeModal() {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', onKeyDown);
+  }
+
+  function onKeyDown(e) {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+  }
+
+  cancelBtn.onclick = () => {
+    closeModal();
+  };
+
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  };
+
+  confirmBtn.onclick = async () => {
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span>Logging out...</span>';
+    cancelBtn.disabled = true;
+    if (typeof onConfirm === 'function') {
+      try {
+        await onConfirm();
+      } catch (err) {
+        console.error('Logout error:', err);
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<span>Log Out</span>';
+        cancelBtn.disabled = false;
+      }
+    }
+  };
+
+  document.addEventListener('keydown', onKeyDown);
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  cancelBtn.focus();
+}
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showLogoutConfirmation({
+        title: 'Confirm Admin Logout',
+        message: 'Are you sure you want to log out of the Admin Dashboard? You will need to sign in again to access administrative tools.',
+        onConfirm: async () => {
+          localStorage.removeItem(STORAGE_KEY_SESSION);
+          sessionStorage.removeItem(STORAGE_KEY_SESSION);
+          localStorage.removeItem(STORAGE_KEY_REPORTS);
+          if (window.CampusCareFirebase && CampusCareFirebase.auth) {
+            try {
+              await CampusCareFirebase.auth.signOut();
+            } catch (err) {
+              console.error('Firebase signOut error:', err);
+            }
+          }
+          window.location.href = 'index.html?logout=true';
+        }
+      });
+    });
+  }
 }
 
 /**
@@ -747,7 +1052,7 @@ window.openStatusModal = function(reportId) {
   statusModalTargetId.value = report.id;
   const statusStudentElem = document.getElementById('statusModalStudentName');
   const statusPhoneElem = document.getElementById('statusModalPhone');
-  if (statusStudentElem) statusStudentElem.textContent = report.studentName || 'Anonymous';
+  if (statusStudentElem) statusStudentElem.textContent = getStudentNameForReport(report);
   if (statusPhoneElem) statusPhoneElem.textContent = report.phone || (report.contact && report.contact !== 'Not provided' ? report.contact : null) || 'Not provided';
   
   const statusKeptWrapper = document.getElementById('statusModalKeptAtWrapper');
@@ -761,27 +1066,15 @@ window.openStatusModal = function(reportId) {
     }
   }
 
-  // Populate status choices strictly matching the report type
-  if (report.type === 'issue') {
-    // Campus issues only: Open, Assigned, In Progress, Resolved
-    newStatusSelect.innerHTML = `
-      <option value="Open">Open</option>
-      <option value="Assigned">Assigned</option>
-      <option value="In Progress">In Progress</option>
-      <option value="Resolved">Resolved</option>
-    `;
-  } else {
-    // Lost and Found items only: Open, Match Found, Returned, Expired
-    newStatusSelect.innerHTML = `
-      <option value="Open">Open</option>
-      <option value="Match Found">Match Found</option>
-      <option value="Returned">Returned</option>
-      <option value="Expired">Expired</option>
-    `;
-  }
+  // Populate status choices strictly matching the 4 standardized options
+  newStatusSelect.innerHTML = `
+    <option value="OPEN">OPEN</option>
+    <option value="MATCH FOUND">MATCH FOUND</option>
+    <option value="IN PROGRESS">IN PROGRESS</option>
+    <option value="RESOLVED">RESOLVED</option>
+  `;
 
-  const validOption = Array.from(newStatusSelect.options).some(opt => opt.value === report.status);
-  newStatusSelect.value = validOption ? report.status : 'Open';
+  newStatusSelect.value = normalizeStatus(report.status);
   statusRemark.value = '';
   document.getElementById('err-statusRemark').textContent = '';
 
@@ -803,11 +1096,6 @@ statusUpdateForm.addEventListener('submit', async (e) => {
   const newStatus = newStatusSelect.value;
   const remarkText = statusRemark.value.trim();
 
-  if (!remarkText) {
-    document.getElementById('err-statusRemark').textContent = 'Admin remark/notes are required for status update.';
-    return;
-  }
-
   const report = allReports.find(r => r.id === reportId);
   if (!report) return;
 
@@ -817,10 +1105,12 @@ statusUpdateForm.addEventListener('submit', async (e) => {
     report.history = [];
   }
 
+  const remarkMsg = remarkText ? `Admin update: ${remarkText}` : `Status updated to ${newStatus} by Admin`;
+
   report.history.push({
     status: newStatus,
     timestamp: new Date().toISOString(),
-    remark: `Admin update: ${remarkText}`
+    remark: remarkMsg
   });
 
   try {
@@ -848,7 +1138,7 @@ window.openVerifyClaimModal = function(reportId) {
   const verifyFinderElem = document.getElementById('verifyFinderName');
   const verifyFinderPhoneElem = document.getElementById('verifyFinderPhone');
   const verifyFinderKeptElem = document.getElementById('verifyFinderKeptAt');
-  if (verifyFinderElem) verifyFinderElem.textContent = report.studentName || 'Finder';
+  if (verifyFinderElem) verifyFinderElem.textContent = getStudentNameForReport(report);
   if (verifyFinderPhoneElem) verifyFinderPhoneElem.textContent = report.phone || (report.contact && report.contact !== 'Not provided' ? report.contact : null) || 'Not provided';
   if (verifyFinderKeptElem) verifyFinderKeptElem.textContent = report.keptAt || 'Not provided';
   verifySecretDetail.textContent = report.secretDetail || 'No secret detail recorded for this item.';
@@ -900,7 +1190,7 @@ btnApproveClaim.addEventListener('click', async () => {
   const report = allReports.find(r => r.id === reportId);
   if (!report) return;
 
-  report.status = 'Returned';
+  report.status = 'RESOLVED';
   report.claimant = {
     name: claimantName,
     contact: claimantContact,
@@ -912,10 +1202,10 @@ btnApproveClaim.addEventListener('click', async () => {
     report.history = [];
   }
 
-  const remarkMsg = `Claim APPROVED & Item Returned to ${claimantName} (${claimantContact}). Proof provided: "${claimantAnswer}". ${adminRemark ? `Notes: ${adminRemark}` : ''}`;
+  const remarkMsg = `Claim APPROVED & Item hand-off RESOLVED to ${claimantName} (${claimantContact}). Proof provided: "${claimantAnswer}". ${adminRemark ? `Notes: ${adminRemark}` : ''}`;
 
   report.history.push({
-    status: 'Returned',
+    status: 'RESOLVED',
     timestamp: new Date().toISOString(),
     remark: remarkMsg
   });
@@ -976,7 +1266,7 @@ window.openHistoryModal = function(reportId) {
   historyModalReportId.textContent = `${report.id} - ${report.itemName || report.category}`;
   const histStudentElem = document.getElementById('historyReporterName');
   const histPhoneElem = document.getElementById('historyReporterPhone');
-  if (histStudentElem) histStudentElem.textContent = report.studentName || 'Anonymous';
+  if (histStudentElem) histStudentElem.textContent = getStudentNameForReport(report);
   if (histPhoneElem) histPhoneElem.textContent = report.phone || (report.contact && report.contact !== 'Not provided' ? report.contact : null) || 'Not provided';
 
   const historyKeptWrapper = document.getElementById('historyKeptAtWrapper');

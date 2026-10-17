@@ -42,7 +42,7 @@ service cloud.firestore {
                     && request.resource.data.ownerUid == request.auth.uid
                     && request.resource.data.id == reportId
                     && request.resource.data.type in ['lost', 'found', 'issue']
-                    && request.resource.data.status in ['Open', 'Assigned'];
+                    && request.resource.data.status in ['OPEN', 'Open', 'Assigned'];
       allow update, delete: if isAdmin();
     }
 

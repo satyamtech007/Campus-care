@@ -201,13 +201,10 @@
         <div class="status-filter-wrapper">
           <select id="statusFilterSelect">
             <option value="all">All Statuses</option>
-            <option value="Open">Open</option>
-            <option value="Assigned">Assigned</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Match Found">Match Found</option>
-            <option value="Returned">Returned</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Expired">Expired</option>
+            <option value="OPEN">OPEN</option>
+            <option value="MATCH FOUND">MATCH FOUND</option>
+            <option value="IN PROGRESS">IN PROGRESS</option>
+            <option value="RESOLVED">RESOLVED</option>
           </select>
         </div>
       </div>
@@ -284,21 +281,21 @@
           <label for="newStatusSelect">New Status <span class="req">*</span></label>
           <div class="input-wrapper select-wrapper">
             <select id="newStatusSelect" required>
-              <option value="Open">Open</option>
-              <option value="Match Found">Match Found</option>
-              <option value="Returned">Returned</option>
-              <option value="Expired">Expired</option>
+              <option value="OPEN">OPEN</option>
+              <option value="MATCH FOUND">MATCH FOUND</option>
+              <option value="IN PROGRESS">IN PROGRESS</option>
+              <option value="RESOLVED">RESOLVED</option>
             </select>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="statusRemark">Admin Remark / Notes <span class="req">*</span></label>
+          <label for="statusRemark">Admin Remark / Notes</label>
           <div class="input-wrapper">
             <textarea id="statusRemark" rows="3"
-              placeholder="Explain the progress, findings, technician notes or action taken..." required></textarea>
+              placeholder="Explain the progress, findings, technician notes or action taken..."></textarea>
           </div>
-          <div class="field-hint">This remark will be permanently added to the public tracking audit trail.</div>
+          <div class="field-hint">Optional — add notes or remarks if needed.</div>
           <span class="error-msg" id="err-statusRemark"></span>
         </div>
 
@@ -385,7 +382,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Approve & Mark Returned</span>
+            <span>Approve & Mark Resolved</span>
           </button>
           <button type="button" class="btn btn-danger-soft" id="btnRejectClaim" style="flex: 1;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
