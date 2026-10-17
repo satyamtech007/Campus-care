@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
   } else if (urlParams.get('logout') === 'true') {
     showToast('Logged out successfully.', 'info');
     showSelectionView();
+  } else if (urlParams.get('registered') === 'true') {
+    openLoginForm('student');
+    showToast('Registration successful! Please sign in with your email and password.', 'success');
   } else if (urlParams.get('role') === 'admin') {
     openLoginForm('admin');
   } else if (urlParams.get('role') === 'student') {
@@ -316,6 +319,11 @@ function setRole(role) {
     if (submitBtnText) submitBtnText.textContent = 'Sign In as Admin';
     if (loginUsernameInput) loginUsernameInput.placeholder = 'admin@college.edu';
   }
+
+  const studentRegisterLink = document.getElementById('studentRegisterLink');
+  if (studentRegisterLink) {
+    studentRegisterLink.style.display = role === 'student' ? 'block' : 'none';
+  }
   clearErrors();
 }
 
@@ -393,6 +401,120 @@ if (portalLoginForm) {
   });
 }
 
+/**
+ * Show/Hide Password Toggle
+ */
+document.querySelectorAll('.password-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = document.getElementById(btn.dataset.target);
+    if (!input) return;
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    btn.classList.toggle('is-visible', show);
+    const label = show ? 'Hide password' : 'Show password';
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
+  });
+});
+
+/**
+ * Google Sign-In (Student & Admin)
+ */
+const ADMIN_EMAIL = 'sattu0205tnb@gmail.com';
+const googleSignInBtn = document.getElementById('googleSignInBtn');
+
+function showLoginError(message) {
+  if (loginErrorMsg) {
+    loginErrorMsg.textContent = message;
+    loginErrorMsg.style.display = 'block';
+  }
+}
+
+function saveSession(user, name, role) {
+  const session = {
+    uid: user.uid,
+    email: user.email,
+    name: name || user.email,
+    role: role,
+    loggedInAt: new Date().toISOString()
+  };
+  localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(session));
+  sessionStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(session));
+}
+
+if (googleSignInBtn) {
+  googleSignInBtn.addEventListener('click', async () => {
+    clearErrors();
+    const role = activeRoleInput ? activeRoleInput.value : 'student';
+    googleSignInBtn.disabled = true;
+
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      const result = await CampusCareFirebase.auth.signInWithPopup(provider);
+      const user = result.user;
+      const email = (user.email || '').toLowerCase();
+      const userRef = CampusCareFirebase.db.collection('users').doc(user.uid);
+
+      if (role === 'admin') {
+        if (email !== ADMIN_EMAIL) {
+          await CampusCareFirebase.auth.signOut();
+          showLoginError('Access denied. You are not authorized as admin.');
+          return;
+        }
+        // Make sure the admin profile exists so admin.html role checks pass
+        await userRef.set({
+          name: user.displayName || email,
+          email: email,
+          photo: user.photoURL || '',
+          role: 'admin'
+        }, { merge: true });
+        saveSession(user, user.displayName, 'admin');
+        window.location.href = 'admin.html';
+        return;
+      }
+
+      // Student flow
+      const snap = await userRef.get();
+      let profile = snap.exists ? snap.data() : null;
+
+      if (profile && profile.role && profile.role !== 'student') {
+        await CampusCareFirebase.auth.signOut();
+        showLoginError(`This account is registered as ${profile.role}. Choose the matching login portal.`);
+        return;
+      }
+
+      if (!profile) {
+        profile = {
+          name: user.displayName || '',
+          email: email,
+          photo: user.photoURL || '',
+          role: 'student',
+          studentID: '',
+          phone: '',
+          createdAt: new Date().toISOString()
+        };
+        await userRef.set(profile);
+      }
+
+      saveSession(user, profile.name || user.displayName, 'student');
+      window.location.href = 'lost.html';
+    } catch (error) {
+      const googleErrors = {
+        'auth/popup-closed-by-user': 'Google sign-in was cancelled.',
+        'auth/cancelled-popup-request': 'Google sign-in was cancelled.',
+        'auth/popup-blocked': 'Popup was blocked by your browser. Allow popups and try again.',
+        'auth/network-request-failed': 'Network error. Check your connection and try again.',
+        'auth/unauthorized-domain': 'This domain is not authorized for Google sign-in in Firebase.',
+        'auth/operation-not-allowed': 'Google sign-in is not enabled in Firebase Authentication.'
+      };
+      showLoginError(googleErrors[error.code] || error.message || 'Google sign-in failed. Please try again.');
+    } finally {
+      googleSignInBtn.disabled = false;
+    }
+  });
+}
+
 function showFieldError(fieldId, msg) {
   const group = document.getElementById(`group-${fieldId}`);
   const err = document.getElementById(`err-${fieldId}`);
@@ -409,6 +531,11 @@ function showToast(message, type = 'info') {
   if (!toastContainer) return;
   const toast = document.createElement('div');
   toast.className = 'toast';
+  if (type === 'error') {
+    toast.style.borderLeft = '4px solid #EF4444';
+  } else if (type === 'success') {
+    toast.style.borderLeft = '4px solid #10B981';
+  }
   toast.innerHTML = `<span>${message}</span>`;
   toastContainer.appendChild(toast);
 

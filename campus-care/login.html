@@ -1,12 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=index.html">
+  <meta http-equiv="refresh" content="0; url=index.html?role=student">
   <title>Campus Care - Login</title>
-  <script>window.location.replace('index.html' + window.location.search);</script>
+  <link rel="stylesheet" href="style.css?v=darktheme2">
+  <script>
+    var search = window.location.search;
+    var target = 'index.html' + (search ? (search.indexOf('role=') >= 0 ? search : search + '&role=student') : '?role=student');
+    window.location.replace(target);
+  </script>
 </head>
+
 <body>
-  <p>Redirecting to <a href="index.html">Campus Care Login</a>...</p>
+  <div style="text-align: center; padding: 3rem 1rem; font-family: 'Plus Jakarta Sans', sans-serif;">
+    <p>Redirecting to <a href="index.html?role=student" style="color: #4F46E5; font-weight: 600;">Campus Care Login</a>...</p>
+    <p style="margin-top: 1rem; color: #6B7280;">
+      Don't have an account? <a href="register.html" style="color: #4F46E5; font-weight: 600; text-decoration: underline;">Register</a>
+    </p>
+  </div>
 </body>
+
 </html>

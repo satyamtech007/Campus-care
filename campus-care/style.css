@@ -232,13 +232,15 @@ img, svg {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-.header-container {
+.header-container,
+.navbar {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0.9rem 1.5rem;
+  padding: 0.75rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 2rem;
 }
 
 /* More gap between logo and nav links */
@@ -502,6 +504,62 @@ textarea:focus {
 textarea {
   resize: vertical;
   min-height: 100px;
+}
+
+/* Dark Mode Form Fields (Applies to all inputs, selects, textareas across all pages) */
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="tel"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="search"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: #1E1B4B !important;
+  border: 1px solid #312E81 !important;
+  color: #E0E7FF !important;
+}
+
+[data-theme="dark"] input[type="text"]:focus,
+[data-theme="dark"] input[type="tel"]:focus,
+[data-theme="dark"] input[type="email"]:focus,
+[data-theme="dark"] input[type="password"]:focus,
+[data-theme="dark"] input[type="date"]:focus,
+[data-theme="dark"] input[type="search"]:focus,
+[data-theme="dark"] input[type="number"]:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+  background-color: #1E1B4B !important;
+  border-color: #4F46E5 !important;
+  color: #E0E7FF !important;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.25) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #A5B4FC !important;
+  opacity: 0.6;
+}
+
+[data-theme="dark"] select option {
+  background-color: #1E1B4B;
+  color: #E0E7FF;
+}
+
+/* Autofill Dark Mode Fix */
+[data-theme="dark"] input:-webkit-autofill,
+[data-theme="dark"] input:-webkit-autofill:hover,
+[data-theme="dark"] input:-webkit-autofill:focus,
+[data-theme="dark"] textarea:-webkit-autofill,
+[data-theme="dark"] textarea:-webkit-autofill:hover,
+[data-theme="dark"] textarea:-webkit-autofill:focus,
+[data-theme="dark"] select:-webkit-autofill,
+[data-theme="dark"] select:-webkit-autofill:hover,
+[data-theme="dark"] select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #E0E7FF !important;
+  -webkit-box-shadow: 0 0 0px 1000px #1E1B4B inset !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .field-hint {
@@ -999,17 +1057,12 @@ textarea {
 /* ==========================================================================
    Navigation Bar & Header Controls
    ========================================================================== */
-.header-actions {
+.header-actions,
+.header-right-group,
+.navbar-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-left: auto;
-}
-
-.header-right-group {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  gap: 12px;
   margin-left: auto;
 }
 
@@ -1856,18 +1909,49 @@ html[data-theme="dark"] .theme-icon-moon {
   letter-spacing: 0.03em;
 }
 
-.secret-hint {
-  color: var(--text-muted);
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-radius: var(--radius-sm);
-  padding: 0.6rem 0.85rem;
-  margin-top: 0.5rem;
-  line-height: 1.45;
+[data-theme="dark"] .secret-badge-tag {
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
-.secret-hint strong {
-  color: #9a3412;
+.secret-hint,
+.verification-hint,
+.private-hint,
+.hint-box {
+  color: #4338CA;
+  background-color: #EEF2FF;
+  border: 1px solid #C7D2FE;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 0.5rem;
+  line-height: 1.45;
+  font-size: 0.85rem;
+}
+
+.secret-hint strong,
+.verification-hint strong,
+.private-hint strong,
+.hint-box strong {
+  color: #312E81;
+}
+
+[data-theme="dark"] .secret-hint,
+[data-theme="dark"] .verification-hint,
+[data-theme="dark"] .private-hint,
+[data-theme="dark"] .hint-box {
+  background-color: rgba(79, 70, 229, 0.15) !important;
+  border: 1px solid rgba(79, 70, 229, 0.3) !important;
+  color: #A5B4FC !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+}
+
+[data-theme="dark"] .secret-hint strong,
+[data-theme="dark"] .verification-hint strong,
+[data-theme="dark"] .private-hint strong,
+[data-theme="dark"] .hint-box strong {
+  color: #E0E7FF !important;
 }
 
 /* ==========================================================================
@@ -1950,6 +2034,96 @@ html[data-theme="dark"] .theme-icon-moon {
 .auth-header {
   text-align: center;
   margin-bottom: 1.75rem;
+}
+
+/* Show/hide password eye toggle (sits inside the input, right side) */
+.input-wrapper:has(.password-toggle) input {
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #4F46E5;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+[data-theme="dark"] .password-toggle {
+  color: #A5B4FC;
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.12);
+  outline: none;
+}
+
+.password-toggle .icon-eye-off {
+  display: none;
+}
+
+.password-toggle.is-visible .icon-eye {
+  display: none;
+}
+
+.password-toggle.is-visible .icon-eye-off {
+  display: block;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 1.25rem 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.btn-google {
+  width: 100%;
+  height: 48px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  gap: 0.75rem;
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border: 1.5px solid var(--color-primary-border);
+}
+
+.btn-google:hover {
+  border-color: #F59E0B;
+  background: var(--color-accent-soft);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+}
+
+.btn-google:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .role-selector {
