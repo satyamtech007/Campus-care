@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Care - Student Profile</title>
+  <meta name="description" content="View and manage your student profile, contact information, and reported items.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=studentprofile3">
+  <script>
+    (function () {
+      try {
+        var savedTheme = localStorage.getItem('campusCare_theme');
+        var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = savedTheme ? savedTheme : (systemPrefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- Header / Navigation -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="lost.html" class="brand" style="text-decoration: none; color: inherit;">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">Campus Care</span>
+        </div>
+      </a>
+
+      <!-- Navigation Tabs (Student Portal) -->
+      <nav class="site-nav" id="siteNav" aria-label="Main Navigation">
+        <a href="lost.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span>Report Lost Item</span>
+        </a>
+        <a href="found.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+            </path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+          <span>Report Found Item</span>
+        </a>
+        <a href="issue.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>Report Campus Issue</span>
+        </a>
+        <a href="track.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+          </svg>
+          <span>Track Status</span>
+        </a>
+        <a href="myreports.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span>My Reports</span>
+        </a>
+        <a href="profile.html" class="nav-link active" aria-current="page">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>My Profile</span>
+        </a>
+      </nav>
+
+      <!-- Header Right Group (Theme Toggle, Logout, Mobile Nav Toggle) -->
+      <div class="header-right-group">
+        <button type="button" class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle dark mode"
+          title="Toggle theme">
+          <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <button type="button" class="btn btn-secondary btn-logout-user" id="userLogoutBtn" title="Log Out">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span>Logout</span>
+        </button>
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-wrapper" style="max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem;">
+    <!-- Hero / Title -->
+    <div class="admin-hero" style="margin-bottom: 2rem;">
+      <h1 class="page-title" style="font-size: 2.1rem; margin-bottom: 0.4rem;">Student Profile</h1>
+      <p class="page-description" style="font-size: 1rem; max-width: 650px;">
+        View your student credentials, update your contact details, and check your report activity across the campus portal.
+      </p>
+    </div>
+
+    <!-- Profile & Metrics Layout Grid -->
+    <div class="admin-profile-layout">
+      <!-- Left Column: Avatar & Photo Upload Card -->
+      <div class="admin-card-glass admin-photo-card" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <div class="admin-avatar-large-wrapper" id="avatarContainer" style="width: 130px; height: 130px; margin: 0 auto 1.25rem auto; display: flex; align-items: center; justify-content: center; position: relative;">
+          <!-- Initial avatar circle (Indigo #4F46E5 background, white text) -->
+          <div class="student-avatar-large-initials" id="avatarInitials" style="width: 130px; height: 130px; border-radius: 50%; background-color: #4F46E5; color: #FFFFFF; font-family: 'Space Grotesk', sans-serif; font-size: 2.75rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 3px solid #6366F1; box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3); user-select: none;">ST</div>
+          <!-- Photo image (shown when photo exists) -->
+          <img id="avatarImage" class="student-avatar-large-img" src="" alt="Student Profile Photo" style="display: none; width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 3px solid #6366F1; box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);">
+        </div>
+
+        <h2 id="cardStudentName" style="font-size: 1.35rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem;">
+          -
+        </h2>
+        <div style="margin-bottom: 0.85rem;">
+          <span class="student-role-badge">Student</span>
+        </div>
+        <p id="cardStudentID" style="font-size: 0.88rem; color: var(--text-muted); font-family: monospace; font-weight: 600; margin-bottom: 1.25rem;">
+          -
+        </p>
+
+        <!-- Hidden File Input (jpg, png, webp only) -->
+        <input type="file" id="profilePicInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+
+        <!-- Upload Button -->
+        <button type="button" class="btn-upload-photo" id="uploadPhotoBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+          <span>Upload Photo</span>
+        </button>
+
+        <p style="font-size: 0.76rem; color: var(--text-light); margin-top: 0.65rem;">
+          JPG, PNG, or WEBP (Max 2MB)
+        </p>
+
+        <!-- Upload Progress Indicator -->
+        <div id="uploadProgressBox" class="upload-progress-box" style="display: none;">
+          <div class="upload-progress-bar-bg">
+            <div id="uploadProgressFill" class="upload-progress-fill"></div>
+          </div>
+          <span id="uploadProgressText" class="upload-progress-text">Uploading... 0%</span>
+        </div>
+      </div>
+
+      <!-- Right Column: Account Information & Activity -->
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Account Details Card -->
+        <div class="admin-card-glass">
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <div class="stat-icon" style="background: rgba(79, 70, 229, 0.15); color: #4F46E5; width: 38px; height: 38px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin: 0;">Account Information</h3>
+            </div>
+            <span class="student-role-badge">Student</span>
+          </div>
+
+          <div class="profile-info-grid">
+            <!-- Full Name -->
+            <div class="profile-field-item">
+              <div class="profile-field-label">Full Name</div>
+              <div class="profile-field-value" id="profileFullName">-</div>
+            </div>
+
+            <!-- Student ID / Roll Number -->
+            <div class="profile-field-item">
+              <div class="profile-field-label">Student ID / Roll No.</div>
+              <div class="profile-field-value" id="profileStudentID" style="font-family: monospace;">-</div>
+            </div>
+
+            <!-- Email Address -->
+            <div class="profile-field-item">
+              <div class="profile-field-label">Email Address</div>
+              <div class="profile-field-value" id="profileEmail" style="font-size: 0.95rem;">-</div>
+            </div>
+
+            <!-- Phone Number (Editable) -->
+            <div class="profile-field-item" style="grid-column: 1 / -1;">
+              <div class="profile-field-label" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Phone Number (Editable)</span>
+                <span style="font-size: 0.72rem; color: var(--color-primary); font-weight: 600;">10 digits</span>
+              </div>
+              <div class="phone-edit-container" style="display: flex; align-items: center; gap: 0.65rem; margin-top: 0.4rem; flex-wrap: wrap;">
+                <input type="tel" id="profilePhoneInput" class="phone-input-field" maxlength="10" placeholder="10-digit mobile number" style="flex: 1; min-width: 180px; max-width: 260px; height: 42px; font-size: 0.95rem; font-weight: 600; padding: 0.4rem 0.85rem; border-radius: var(--radius-sm); border: 1.5px solid var(--border-color); background: var(--bg-surface); color: var(--text-main); box-sizing: border-box;">
+                <button type="button" id="savePhoneBtn" class="btn btn-phone-action btn-phone-save" style="height: 42px; padding: 0 1.25rem; font-size: 0.88rem; font-weight: 600; background: #4F46E5; color: #FFFFFF; border: none; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                  </svg>
+                  <span>Save Phone</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Date Joined -->
+            <div class="profile-field-item">
+              <div class="profile-field-label">Date Joined</div>
+              <div class="profile-field-value" id="profileCreatedAt" style="font-size: 0.95rem;">-</div>
+            </div>
+
+            <!-- Portal Access -->
+            <div class="profile-field-item">
+              <div class="profile-field-label">Portal Access</div>
+              <div class="profile-field-value">
+                <span class="student-role-badge" style="background: rgba(16, 185, 129, 0.12); color: #10B981; border-color: #10B981;">
+                  Verified Student
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity & Report Statistics Grid -->
+        <div class="admin-card-glass">
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; width: 38px; height: 38px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin: 0;">My Campus Activity</h3>
+            </div>
+            <a href="myreports.html" class="inline-link" style="font-size: 0.85rem; text-decoration: none;">View All Reports &rarr;</a>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem;">
+            <!-- Total Reports Submitted -->
+            <div class="stat-card" style="margin: 0; box-shadow: none;">
+              <div class="stat-icon bg-primary-soft">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Total Reports Submitted</span>
+                <span class="stat-value" id="statTotalReports">--</span>
+              </div>
+            </div>
+
+            <!-- Open / Under Review Reports -->
+            <div class="stat-card" style="margin: 0; box-shadow: none;">
+              <div class="stat-icon bg-accent-soft" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 14 14"></polyline>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Active / Pending</span>
+                <span class="stat-value" id="statActiveReports">--</span>
+              </div>
+            </div>
+
+            <!-- Resolved Reports -->
+            <div class="stat-card" style="margin: 0; box-shadow: none;">
+              <div class="stat-icon bg-success-soft">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Resolved Reports</span>
+                <span class="stat-value" id="statResolvedReports">--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Logout Confirmation Modal Dialog (Same as other student pages) -->
+  <div class="modal-overlay" id="ccLogoutModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="ccLogoutTitle" style="display: none;">
+    <div class="modal-dialog" style="max-width: 440px; text-align: center; padding: 2rem 1.75rem;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--color-danger-soft, #fef2f2); border: 2px solid var(--color-danger-border, #fecaca); color: var(--color-danger, #ef4444); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </div>
+      <h3 class="modal-title" id="ccLogoutTitle" style="font-size: 1.35rem; margin-bottom: 0.5rem;">Confirm Logout</h3>
+      <p class="modal-subtitle" id="ccLogoutDesc" style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;">
+        Are you sure you want to log out of your student session? Any unsaved form progress will be lost.
+      </p>
+      <div class="modal-actions" style="display: flex; gap: 0.75rem; justify-content: center;">
+        <button type="button" class="btn btn-secondary" id="ccCancelLogoutBtn" style="flex: 1; min-height: 44px;">
+          <span>Cancel</span>
+        </button>
+        <button type="button" class="btn" id="ccConfirmLogoutBtn" style="flex: 1; min-height: 44px; background: var(--color-danger, #ef4444); color: #ffffff; border: 1px solid var(--color-danger, #ef4444); font-weight: 600; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);">
+          <span>Log Out</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>&copy; Campus Care Portal &bull; Centralized Issue & Lost/Found Management System</p>
+  </footer>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="firebase-client.js"></script>
+  <script src="profile.js?v=studentprofile7"></script>
+</body>
+
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Care - Admin Profile</title>
+  <meta name="description" content="Campus Care Administrator Profile and System Metrics.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=darktheme2">
+  <script>
+    (function () {
+      try {
+        var savedTheme = localStorage.getItem('campusCare_theme');
+        var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = savedTheme ? savedTheme : (systemPrefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+</head>
+
+<body class="admin-dashboard-body">
+  <!-- Header / Navigation -->
+  <header class="site-header">
+    <div class="header-container admin-header-container">
+      <div class="admin-header-left">
+        <a href="admin.html" class="brand" style="text-decoration: none; color: inherit;">
+          <div class="brand-icon" style="background: linear-gradient(135deg, #1e40af, #7c3aed);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <polyline points="17 11 19 13 23 9"></polyline>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">Campus Care</span>
+          </div>
+        </a>
+
+        <!-- Navigation Tabs (Admin Only) -->
+        <nav class="site-nav admin-site-nav" aria-label="Main Navigation">
+          <a href="admin.html" class="nav-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Admin Dashboard</span>
+          </a>
+          <a href="admin-profile.html" class="nav-link active" aria-current="page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>My Profile</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Admin User Bar & Logout -->
+      <div class="admin-user-bar">
+        <button type="button" class="btn-theme-toggle" id="themeToggleBtn" aria-label="Toggle dark mode"
+          title="Toggle theme">
+          <svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <div class="admin-profile-chip">
+          <div class="admin-avatar" id="headerAdminAvatar">A</div>
+          <div class="admin-meta">
+            <span class="admin-name" id="headerAdminName">Admin Officer</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-secondary btn-logout" id="logoutBtn" title="Log Out">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-wrapper" style="max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem;">
+    <!-- Hero / Title -->
+    <div class="admin-hero" style="margin-bottom: 2rem;">
+      <h1 class="page-title" style="font-size: 2.1rem; margin-bottom: 0.4rem;">Admin Profile & Operations</h1>
+      <p class="page-description" style="font-size: 1rem; max-width: 650px;">
+        View your administrator credentials, manage your profile avatar, and track institutional resolution metrics.
+      </p>
+    </div>
+
+    <!-- Profile & Metrics Layout Grid -->
+    <div class="admin-profile-layout">
+      <!-- Left Column: Avatar & Photo Upload Card -->
+      <div class="admin-card-glass admin-photo-card">
+        <div class="admin-avatar-large-wrapper" id="avatarContainer">
+          <!-- Initial avatar circle (default) -->
+          <div class="admin-avatar-large-initials" id="avatarInitials">AD</div>
+          <!-- Photo image (shown when photoURL exists) -->
+          <img id="avatarImage" class="admin-avatar-large-img" src="" alt="Admin Profile Photo" style="display: none;">
+        </div>
+
+        <h2 id="cardAdminName" style="font-size: 1.35rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem;">
+          Admin Officer
+        </h2>
+        <p id="cardAdminEmail" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+          -
+        </p>
+
+        <!-- Hidden File Input (jpg, png, webp only) -->
+        <input type="file" id="profilePicInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+
+        <!-- Upload Button -->
+        <button type="button" class="btn-upload-photo" id="uploadPhotoBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+          <span>Upload Photo</span>
+        </button>
+
+        <p style="font-size: 0.76rem; color: var(--text-light); margin-top: 0.65rem;">
+          JPG, PNG, or WEBP (Max 2MB)
+        </p>
+
+        <!-- Upload Progress Indicator -->
+        <div id="uploadProgressBox" class="upload-progress-box" style="display: none;">
+          <div class="upload-progress-bar-bg">
+            <div id="uploadProgressFill" class="upload-progress-fill"></div>
+          </div>
+          <span id="uploadProgressText" class="upload-progress-text">Uploading... 0%</span>
+        </div>
+      </div>
+
+      <!-- Right Column: Account Information & Metrics -->
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Account Details Card -->
+        <div class="admin-card-glass">
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <div class="stat-icon" style="background: rgba(79, 70, 229, 0.15); color: #4F46E5; width: 38px; height: 38px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin: 0;">Account Information</h3>
+            </div>
+            <span class="admin-role-badge-amber">Admin</span>
+          </div>
+
+          <div class="profile-info-grid">
+            <div class="profile-field-item">
+              <div class="profile-field-label">Full Name</div>
+              <div class="profile-field-value" id="profileFullName">-</div>
+            </div>
+
+            <div class="profile-field-item">
+              <div class="profile-field-label">Email Address</div>
+              <div class="profile-field-value" id="profileEmail" style="font-size: 0.95rem;">-</div>
+            </div>
+
+            <div class="profile-field-item">
+              <div class="profile-field-label">Assigned Role</div>
+              <div class="profile-field-value">
+                <span class="admin-role-badge-amber">Admin</span>
+              </div>
+            </div>
+
+            <div class="profile-field-item">
+              <div class="profile-field-label">Account Created</div>
+              <div class="profile-field-value" id="profileCreatedAt" style="font-size: 0.95rem;">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance & System Statistics Grid -->
+        <div class="admin-card-glass">
+          <div style="display: flex; align-items: center; gap: 0.65rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; width: 38px; height: 38px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 20V10"></path>
+                <path d="M18 20V4"></path>
+                <path d="M6 20v-4"></path>
+              </svg>
+            </div>
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin: 0;">System Performance Metrics</h3>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem;">
+            <!-- Total Reports Managed -->
+            <div class="stat-card" style="margin: 0; box-shadow: none;">
+              <div class="stat-icon bg-primary-soft">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Total Reports Managed</span>
+                <span class="stat-value" id="statTotalReports">--</span>
+              </div>
+            </div>
+
+            <!-- Total Resolved Reports -->
+            <div class="stat-card" style="margin: 0; box-shadow: none;">
+              <div class="stat-icon bg-success-soft">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Total Resolved Reports</span>
+                <span class="stat-value" id="statResolvedReports">--</span>
+              </div>
+            </div>
+
+            <!-- Resolution Rate -->
+            <div class="stat-card" style="margin: 0; box-shadow: none;">
+              <div class="stat-icon bg-accent-soft" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 14 14"></polyline>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">Resolution Rate</span>
+                <span class="stat-value" id="statResolutionRate">--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Logout Confirmation Modal Dialog (Same as admin.html) -->
+  <div class="modal-overlay" id="ccLogoutModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="ccLogoutTitle">
+    <div class="modal-dialog" style="max-width: 440px; text-align: center; padding: 2rem 1.75rem;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--color-danger-soft, #fef2f2); border: 2px solid var(--color-danger-border, #fecaca); color: var(--color-danger, #ef4444); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </div>
+      <h3 class="modal-title" id="ccLogoutTitle" style="font-size: 1.35rem; margin-bottom: 0.5rem;">Confirm Admin Logout</h3>
+      <p class="modal-subtitle" id="ccLogoutDesc" style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;">
+        Are you sure you want to log out of the Admin Dashboard? You will need to sign in again to access administrative tools.
+      </p>
+      <div class="modal-actions" style="display: flex; gap: 0.75rem; justify-content: center;">
+        <button type="button" class="btn btn-secondary" id="ccCancelLogoutBtn" style="flex: 1; min-height: 44px;">
+          <span>Cancel</span>
+        </button>
+        <button type="button" class="btn" id="ccConfirmLogoutBtn" style="flex: 1; min-height: 44px; background: var(--color-danger, #ef4444); color: #ffffff; border: 1px solid var(--color-danger, #ef4444); font-weight: 600; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);">
+          <span>Log Out</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>&copy; Campus Care Portal &bull; Centralized Issue & Lost/Found Management System</p>
+  </footer>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="firebase-client.js"></script>
+  <script src="admin-profile.js"></script>
+</body>
+
+</html>

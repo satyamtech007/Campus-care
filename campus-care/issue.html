@@ -105,6 +105,14 @@
           </svg>
           <span>My Reports</span>
         </a>
+        <a href="profile.html" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>My Profile</span>
+        </a>
       </nav>
 
       <!-- Header Right Group (Theme Toggle, Logout, Mobile Nav Toggle) -->
@@ -348,6 +356,31 @@
     </div>
   </div>
 
+  <!-- Logout Confirmation Modal Dialog (Same as lost.html and track.html) -->
+  <div class="modal-overlay" id="ccLogoutModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="ccLogoutTitle">
+    <div class="modal-dialog" style="max-width: 440px; text-align: center; padding: 2rem 1.75rem;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--color-danger-soft, #fef2f2); border: 2px solid var(--color-danger-border, #fecaca); color: var(--color-danger, #ef4444); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </div>
+      <h3 class="modal-title" id="ccLogoutTitle" style="font-size: 1.35rem; margin-bottom: 0.5rem;">Confirm Logout</h3>
+      <p class="modal-subtitle" id="ccLogoutDesc" style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;">
+        Are you sure you want to log out of your student session? Any unsaved form progress will be lost.
+      </p>
+      <div class="modal-actions" style="display: flex; gap: 0.75rem; justify-content: center;">
+        <button type="button" class="btn btn-secondary" id="ccCancelLogoutBtn" style="flex: 1; min-height: 44px;">
+          <span>Cancel</span>
+        </button>
+        <button type="button" class="btn" id="ccConfirmLogoutBtn" style="flex: 1; min-height: 44px; background: var(--color-danger, #ef4444); color: #ffffff; border: 1px solid var(--color-danger, #ef4444); font-weight: 600; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);">
+          <span>Log Out</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container"></div>
 
@@ -359,7 +392,70 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="firebase-client.js"></script>
-  <script src="issue.js"></script>
+  <script src="issue.js?v=logout_fixed"></script>
+  <script>
+    (function () {
+      function bindLogout() {
+        var btn = document.getElementById('userLogoutBtn');
+        var modal = document.getElementById('ccLogoutModal');
+        if (!btn || !modal) return;
+
+        btn.onclick = function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          modal.classList.add('active');
+          modal.setAttribute('aria-hidden', 'false');
+
+          var cancelBtn = document.getElementById('ccCancelLogoutBtn');
+          var confirmBtn = document.getElementById('ccConfirmLogoutBtn');
+
+          function closeModal() {
+            modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
+          }
+
+          if (cancelBtn) {
+            cancelBtn.onclick = function () {
+              closeModal();
+            };
+          }
+
+          modal.onclick = function (ev) {
+            if (ev.target === modal) {
+              closeModal();
+            }
+          };
+
+          if (confirmBtn) {
+            confirmBtn.onclick = async function () {
+              confirmBtn.disabled = true;
+              confirmBtn.innerHTML = '<span>Logging out...</span>';
+              try {
+                localStorage.removeItem('campusCare_session');
+                sessionStorage.removeItem('campusCare_session');
+                localStorage.removeItem('campusCare_reports');
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                  await firebase.auth().signOut();
+                } else if (window.CampusCareFirebase && CampusCareFirebase.auth) {
+                  await CampusCareFirebase.auth.signOut();
+                }
+              } catch (err) {
+                console.error('Logout error:', err);
+              } finally {
+                window.location.href = 'index.html?logout=true';
+              }
+            };
+          }
+        };
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindLogout);
+      } else {
+        bindLogout();
+      }
+    })();
+  </script>
 </body>
 
 </html>

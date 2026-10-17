@@ -821,11 +821,13 @@ function closeModal() {
 
 const modalTrackBtn = document.getElementById('modalTrackBtn');
 
-modalCloseBtn.addEventListener('click', closeModal);
+if (modalCloseBtn) {
+  modalCloseBtn.addEventListener('click', closeModal);
+}
 
 if (modalTrackBtn) {
   modalTrackBtn.addEventListener('click', () => {
-    const id = modalReportId.textContent;
+    const id = modalReportId ? modalReportId.textContent : '';
     if (id) {
       window.location.href = `track.html?id=${encodeURIComponent(id)}`;
     }
@@ -833,21 +835,27 @@ if (modalTrackBtn) {
 }
 
 // Close modal when clicking outside dialog
-successModal.addEventListener('click', (e) => {
-  if (e.target === successModal) {
-    closeModal();
-  }
-});
+if (successModal) {
+  successModal.addEventListener('click', (e) => {
+    if (e.target === successModal) {
+      closeModal();
+    }
+  });
+}
 
 // Copy Report ID to Clipboard
-copyIdBtn.addEventListener('click', () => {
-  const idText = modalReportId.textContent;
-  navigator.clipboard.writeText(idText).then(() => {
-    showToast(`Copied ${idText} to clipboard!`);
-  }).catch(() => {
-    showToast('Failed to copy ID to clipboard', 'error');
+if (copyIdBtn) {
+  copyIdBtn.addEventListener('click', () => {
+    const idText = modalReportId ? modalReportId.textContent : '';
+    if (idText) {
+      navigator.clipboard.writeText(idText).then(() => {
+        showToast(`Copied ${idText} to clipboard!`);
+      }).catch(() => {
+        showToast('Failed to copy ID to clipboard', 'error');
+      });
+    }
   });
-});
+}
 
 /**
  * Renders the recent reports stored in localStorage (filtered to lost items)

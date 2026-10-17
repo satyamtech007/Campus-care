@@ -26,17 +26,139 @@ if (navToggle && siteNav) {
   });
 }
 
-// User Logout handler
-const userLogoutBtn = document.getElementById('userLogoutBtn');
-if (userLogoutBtn) {
-  userLogoutBtn.addEventListener('click', async () => {
-    localStorage.removeItem('campusCare_session');
-    sessionStorage.removeItem('campusCare_session');
-    localStorage.removeItem('campusCare_reports');
-    await CampusCareFirebase.auth.signOut();
-    window.location.href = 'index.html?logout=true';
-  });
+// User Logout handler with confirmation popup
+function initLogoutModal() {
+  const userLogoutBtn = document.getElementById('userLogoutBtn');
+  if (userLogoutBtn && !userLogoutBtn.dataset.hasLogoutHandler) {
+    userLogoutBtn.dataset.hasLogoutHandler = 'true';
+    userLogoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showLogoutConfirmation({
+        title: 'Confirm Logout',
+        message: 'Are you sure you want to log out of your student session? Any unsaved form progress will be lost.',
+        onConfirm: async () => {
+          localStorage.removeItem('campusCare_session');
+          sessionStorage.removeItem('campusCare_session');
+          localStorage.removeItem('campusCare_reports');
+          try {
+            if (typeof firebase !== 'undefined' && firebase.auth) {
+              await firebase.auth().signOut();
+            } else if (window.CampusCareFirebase && CampusCareFirebase.auth) {
+              await CampusCareFirebase.auth.signOut();
+            }
+          } catch (err) {
+            console.error('Firebase signOut error:', err);
+          }
+          window.location.href = 'index.html?logout=true';
+        }
+      });
+    });
+  }
 }
+
+/**
+ * Universal logout confirmation modal (matches lost.html & track.html)
+ */
+function showLogoutConfirmation({ title = 'Confirm Logout', message = 'Are you sure you want to log out?', onConfirm }) {
+  let modal = document.getElementById('ccLogoutModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'ccLogoutModal';
+    modal.className = 'modal-overlay';
+    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'ccLogoutTitle');
+    modal.innerHTML = `
+      <div class="modal-dialog" style="max-width: 440px; text-align: center; padding: 2rem 1.75rem;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--color-danger-soft, #fef2f2); border: 2px solid var(--color-danger-border, #fecaca); color: var(--color-danger, #ef4444); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </div>
+        <h3 class="modal-title" id="ccLogoutTitle" style="font-size: 1.35rem; margin-bottom: 0.5rem;"></h3>
+        <p class="modal-subtitle" id="ccLogoutDesc" style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;"></p>
+        <div class="modal-actions" style="display: flex; gap: 0.75rem; justify-content: center;">
+          <button type="button" class="btn btn-secondary" id="ccCancelLogoutBtn" style="flex: 1; min-height: 44px;">
+            <span>Cancel</span>
+          </button>
+          <button type="button" class="btn" id="ccConfirmLogoutBtn" style="flex: 1; min-height: 44px; background: var(--color-danger, #ef4444); color: #ffffff; border: 1px solid var(--color-danger, #ef4444); font-weight: 600; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);">
+            <span>Log Out</span>
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  const titleElem = modal.querySelector('#ccLogoutTitle');
+  const descElem = modal.querySelector('#ccLogoutDesc');
+  const cancelBtn = modal.querySelector('#ccCancelLogoutBtn');
+  const confirmBtn = modal.querySelector('#ccConfirmLogoutBtn');
+
+  if (titleElem) titleElem.textContent = title;
+  if (descElem) descElem.textContent = message;
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = '<span>Log Out</span>';
+  }
+  if (cancelBtn) cancelBtn.disabled = false;
+
+  function closeModal() {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', onKeyDown);
+  }
+
+  function onKeyDown(e) {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+  }
+
+  if (cancelBtn) {
+    cancelBtn.onclick = () => {
+      closeModal();
+    };
+  }
+
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  };
+
+  if (confirmBtn) {
+    confirmBtn.onclick = async () => {
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span>Logging out...</span>';
+      if (cancelBtn) cancelBtn.disabled = true;
+
+      if (typeof onConfirm === 'function') {
+        try {
+          await onConfirm();
+        } catch (err) {
+          console.error('Logout error:', err);
+          confirmBtn.disabled = false;
+          confirmBtn.innerHTML = '<span>Log Out</span>';
+          if (cancelBtn) cancelBtn.disabled = false;
+        }
+      }
+    };
+  }
+
+  document.addEventListener('keydown', onKeyDown);
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  if (cancelBtn) cancelBtn.focus();
+}
+
+// Attach logout listener
+initLogoutModal();
+document.addEventListener('DOMContentLoaded', initLogoutModal);
 
 // DOM Elements - Form
 const form = document.getElementById('campusIssueForm');
@@ -640,11 +762,13 @@ function closeModal() {
   clearErrors();
 }
 
-modalCloseBtn.addEventListener('click', closeModal);
+if (modalCloseBtn) {
+  modalCloseBtn.addEventListener('click', closeModal);
+}
 
 if (modalTrackBtn) {
   modalTrackBtn.addEventListener('click', () => {
-    const id = modalReportId.textContent;
+    const id = modalReportId ? modalReportId.textContent : '';
     if (id) {
       window.location.href = `track.html?id=${encodeURIComponent(id)}`;
     }
@@ -652,21 +776,27 @@ if (modalTrackBtn) {
 }
 
 // Close modal when clicking outside dialog
-successModal.addEventListener('click', (e) => {
-  if (e.target === successModal) {
-    closeModal();
-  }
-});
+if (successModal) {
+  successModal.addEventListener('click', (e) => {
+    if (e.target === successModal) {
+      closeModal();
+    }
+  });
+}
 
 // Copy Report ID to Clipboard
-copyIdBtn.addEventListener('click', () => {
-  const idText = modalReportId.textContent;
-  navigator.clipboard.writeText(idText).then(() => {
-    showToast(`Copied ${idText} to clipboard!`);
-  }).catch(() => {
-    showToast('Failed to copy ID to clipboard', 'error');
+if (copyIdBtn) {
+  copyIdBtn.addEventListener('click', () => {
+    const idText = modalReportId ? modalReportId.textContent : '';
+    if (idText) {
+      navigator.clipboard.writeText(idText).then(() => {
+        showToast(`Copied ${idText} to clipboard!`);
+      }).catch(() => {
+        showToast('Failed to copy ID to clipboard', 'error');
+      });
+    }
   });
-});
+}
 
 /**
  * Renders the recent campus issues stored in localStorage

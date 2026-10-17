@@ -71,6 +71,13 @@
             </svg>
             <span>Admin Dashboard</span>
           </a>
+          <a href="admin-profile.html" class="nav-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>My Profile</span>
+          </a>
         </nav>
       </div>
 
@@ -95,12 +102,12 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
           </svg>
         </button>
-        <div class="admin-profile-chip">
-          <div class="admin-avatar">A</div>
+        <a href="admin-profile.html" class="admin-profile-chip" title="View Admin Profile" style="text-decoration: none; color: inherit;">
+          <div class="admin-avatar" id="adminUserAvatar">A</div>
           <div class="admin-meta">
             <span class="admin-name" id="adminUserName">Admin Officer</span>
           </div>
-        </div>
+        </a>
         <button type="button" class="btn btn-secondary btn-logout" id="logoutBtn" title="Log Out">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

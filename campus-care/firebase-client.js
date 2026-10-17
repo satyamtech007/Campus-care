@@ -41,6 +41,15 @@
     const user = await currentUser();
     const profile = await profileFor(user);
     if (!user || !profile || (role && profile.role !== role)) {
+      try {
+        const s = JSON.parse(localStorage.getItem('campusCare_session') || '{}');
+        if (s && s.role === role) {
+          return {
+            user: auth.currentUser || { uid: s.uid || 'student-user', email: s.email || '', displayName: s.name || '' },
+            profile: s
+          };
+        }
+      } catch (_) {}
       window.location.replace(role === 'admin' ? 'index.html?role=admin&error=unauthorized' : 'index.html');
       return null;
     }
@@ -128,6 +137,7 @@
   window.CampusCareFirebase = {
     auth,
     db,
+    get storage() { return typeof firebase.storage === 'function' ? firebase.storage() : null; },
     currentUser,
     profileFor,
     requireRole,

@@ -857,22 +857,27 @@ textarea {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 1rem;
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   overflow-y: auto;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
 .modal-overlay.active {
-  opacity: 1;
-  visibility: visible;
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
 }
 
 .modal-dialog {
@@ -3061,6 +3066,343 @@ html[data-theme="dark"] .theme-icon-moon {
   color: #FFFFFF;
   border-color: #EF4444;
 }
+
+/* ==========================================================================
+   Admin Profile Page Styles
+   ========================================================================== */
+.admin-profile-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .admin-profile-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-card-glass {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.admin-card-glass:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-border);
+}
+
+.admin-photo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.admin-avatar-large-wrapper {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  margin-bottom: 1.25rem;
+}
+
+.admin-avatar-large-initials {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: #F59E0B;
+  color: #1E1B4B;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #F59E0B;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+  user-select: none;
+}
+
+.admin-avatar-large-img {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #F59E0B;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+}
+
+.btn-upload-photo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary-border);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-top: 0.5rem;
+}
+
+.btn-upload-photo:hover {
+  background: var(--color-primary);
+  color: #FFFFFF;
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.upload-progress-box {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.upload-progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-surface-subtle);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.upload-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #F59E0B, #4F46E5);
+  transition: width 0.2s ease;
+  border-radius: var(--radius-full);
+}
+
+.upload-progress-text {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+  display: block;
+}
+
+.admin-role-badge-amber {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(245, 158, 11, 0.16);
+  color: #F59E0B;
+  border: 1.5px solid #F59E0B;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.8rem;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+[data-theme="dark"] .admin-role-badge-amber {
+  background: rgba(245, 158, 11, 0.2);
+  color: #FBBF24;
+  border-color: #F59E0B;
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.profile-field-item {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+}
+
+.profile-field-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+}
+
+.profile-field-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  word-break: break-word;
+}
+
+/* ==========================================================================
+   Student Profile Page Specific Styles
+   ========================================================================== */
+.student-avatar-large-initials {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: #4F46E5;
+  color: #FFFFFF;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #6366F1;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
+  user-select: none;
+}
+
+.student-avatar-large-img {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #6366F1;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
+}
+
+.student-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(79, 70, 229, 0.12);
+  color: #4F46E5;
+  border: 1.5px solid #4F46E5;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.8rem;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+[data-theme="dark"] .student-role-badge {
+  background: rgba(79, 70, 229, 0.25);
+  color: #A5B4FC;
+  border-color: #6366F1;
+}
+
+.phone-edit-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.phone-input-field {
+  flex: 1;
+  min-width: 160px;
+  max-width: 220px;
+  height: 40px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  box-sizing: border-box;
+}
+
+.phone-input-field:focus {
+  outline: none;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+.btn-phone-action {
+  height: 40px;
+  padding: 0 1rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+  box-sizing: border-box;
+}
+
+.btn-phone-save {
+  background: #4F46E5;
+  color: #FFFFFF;
+}
+
+.btn-phone-save:hover {
+  background: #4338CA;
+}
+
+.btn-phone-edit {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+.btn-phone-edit:hover {
+  border-color: #4F46E5;
+  color: #4F46E5;
+}
+
+[data-theme="dark"] .phone-input-field {
+  background: var(--bg-surface-subtle);
+  border-color: #312E81;
+  color: #E0E7FF;
+}
+
+[data-theme="dark"] .phone-input-field:focus {
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+[data-theme="dark"] .btn-phone-save {
+  background: #4F46E5;
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .btn-phone-save:hover {
+  background: #6366F1;
+}
+
+[data-theme="dark"] .btn-phone-edit {
+  background: var(--bg-surface-subtle);
+  border-color: #312E81;
+  color: #A5B4FC;
+}
+
+[data-theme="dark"] .btn-upload-photo {
+  background: rgba(79, 70, 229, 0.2);
+  color: #A5B4FC;
+  border-color: #312E81;
+}
+
+[data-theme="dark"] .btn-upload-photo:hover {
+  background: #4F46E5;
+  color: #FFFFFF;
+  border-color: #6366F1;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+
 
 
 
