@@ -138,6 +138,7 @@ async function initStudentProfilePage() {
 
   // Attach Photo Upload
   initPhotoUpload(currentUser || { uid: uid }, fullName, authEmail);
+  initAvatarEditMenu(currentUser || { uid: uid }, fullName, authEmail);
 
   // Re-query latest stats from Firestore
   loadStudentReportsStats(studentID, uid, authEmail);
@@ -376,6 +377,75 @@ async function loadStudentReportsStats(studentID, uid, email) {
   if (statTotalReports) statTotalReports.textContent = totalCount;
   if (statActiveReports) statActiveReports.textContent = activeCount;
   if (statResolvedReports) statResolvedReports.textContent = resolvedCount;
+}
+/**
+ * Avatar Edit Menu (Pencil Icon) — Change or Remove Photo
+ */
+function initAvatarEditMenu(currentUser, studentName, studentEmail) {
+  const editBtn = document.getElementById('avatarEditBtn');
+  const editMenu = document.getElementById('avatarEditMenu');
+  const menuChangePhoto = document.getElementById('menuChangePhoto');
+  const menuRemovePhoto = document.getElementById('menuRemovePhoto');
+  const profilePicInput = document.getElementById('profilePicInput');
+
+  if (!editBtn || !editMenu) return;
+
+  // Toggle menu on pencil click
+  editBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isVisible = editMenu.style.display === 'block';
+    editMenu.style.display = isVisible ? 'none' : 'block';
+  });
+
+  // Close menu when clicking outside
+  document.addEventListener('click', () => {
+    editMenu.style.display = 'none';
+  });
+
+  // Change Photo
+  if (menuChangePhoto) {
+    menuChangePhoto.addEventListener('click', () => {
+      editMenu.style.display = 'none';
+      profilePicInput.click();
+    });
+  }
+
+  // Remove Photo
+  if (menuRemovePhoto) {
+    menuRemovePhoto.addEventListener('click', async () => {
+      editMenu.style.display = 'none';
+      try {
+        const uid = currentUser.uid || 'student-uid';
+
+        // Remove from Firestore
+        await CampusCareFirebase.db.collection('users').doc(uid).set({
+          photo: '',
+          photoURL: ''
+        }, { merge: true });
+
+        // Remove from Firebase Auth
+        try {
+          if (currentUser.updateProfile) {
+            await currentUser.updateProfile({ photoURL: '' });
+          }
+        } catch (_) { }
+
+        // Remove from localStorage
+        try {
+          const session = JSON.parse(localStorage.getItem('campusCare_session') || '{}');
+          session.photo = '';
+          session.photoURL = '';
+          localStorage.setItem('campusCare_session', JSON.stringify(session));
+        } catch (_) { }
+
+        // Revert to initials
+        renderAvatar('', studentName, studentEmail);
+        showToast('Profile photo removed successfully!', 'success');
+      } catch (err) {
+        showToast('Failed to remove photo. Please try again.', 'error');
+      }
+    });
+  }
 }
 
 /**
