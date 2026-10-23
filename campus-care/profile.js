@@ -23,7 +23,7 @@ async function initStudentProfilePage() {
   let session = null;
   try {
     session = JSON.parse(localStorage.getItem('campusCare_session') || '{}');
-  } catch (_) {}
+  } catch (_) { }
 
   // If session says admin, redirect
   if (session && session.role === 'admin') {
@@ -301,7 +301,7 @@ function initPhoneEditor(uid, studentProfile) {
         const session = JSON.parse(localStorage.getItem('campusCare_session') || '{}');
         session.phone = digitsOnly;
         localStorage.setItem('campusCare_session', JSON.stringify(session));
-      } catch (_) {}
+      } catch (_) { }
 
       showToast('Phone number updated successfully!', 'success');
     } catch (saveErr) {
@@ -330,7 +330,7 @@ async function loadStudentReportsStats(studentID, uid, email) {
     if (CampusCareFirebase && CampusCareFirebase.db) {
       // Fetch all reports to match by studentID or uid/email
       const snapshot = await CampusCareFirebase.db.collection('reports').get();
-      
+
       snapshot.forEach(doc => {
         const data = doc.data() || {};
         const matchesStudentID = data.studentID && String(data.studentID).trim().toLowerCase() === String(studentID).trim().toLowerCase();
@@ -370,7 +370,7 @@ async function loadStudentReportsStats(studentID, uid, email) {
           }
         }
       });
-    } catch (_) {}
+    } catch (_) { }
   }
 
   if (statTotalReports) statTotalReports.textContent = totalCount;
@@ -379,7 +379,7 @@ async function loadStudentReportsStats(studentID, uid, email) {
 }
 
 /**
- * Handles Profile Picture Upload to Firebase Storage
+ * Handles Profile Picture Upload - Firestore Base64 (No Storage Required)
  */
 function initPhotoUpload(currentUser, studentName, studentEmail) {
   const uploadPhotoBtn = document.getElementById('uploadPhotoBtn');
@@ -398,7 +398,7 @@ function initPhotoUpload(currentUser, studentName, studentEmail) {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
 
-    // Validate format (jpg, png, webp only)
+    // Validate format
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       showToast('Please upload a valid image file (JPG, PNG, or WEBP only).', 'error');
@@ -406,17 +406,11 @@ function initPhotoUpload(currentUser, studentName, studentEmail) {
       return;
     }
 
-    // Validate size (max 2MB)
-    const MAX_SIZE_BYTES = 2 * 1024 * 1024;
+    // Validate size (max 500KB for Firestore)
+    const MAX_SIZE_BYTES = 500 * 1024;
     if (file.size > MAX_SIZE_BYTES) {
-      showToast('File size exceeds the 2MB limit. Please choose a smaller photo.', 'error');
+      showToast('File size exceeds 500KB limit for profile photos. Please choose a smaller image.', 'error');
       profilePicInput.value = '';
-      return;
-    }
-
-    // Check Firebase Storage availability
-    if (!CampusCareFirebase.storage) {
-      showToast('Firebase Storage is not available. Please verify network configuration.', 'error');
       return;
     }
 
@@ -424,74 +418,73 @@ function initPhotoUpload(currentUser, studentName, studentEmail) {
     uploadPhotoBtn.disabled = true;
     if (uploadProgressBox) uploadProgressBox.style.display = 'block';
     if (uploadProgressFill) uploadProgressFill.style.width = '0%';
-    if (uploadProgressText) uploadProgressText.textContent = 'Uploading... 0%';
+    if (uploadProgressText) uploadProgressText.textContent = 'Processing... 0%';
 
     try {
+      // Convert image to Base64
+      const base64 = await convertToBase64(file, (progress) => {
+        if (uploadProgressFill) uploadProgressFill.style.width = `${progress}%`;
+        if (uploadProgressText) uploadProgressText.textContent = `Processing... ${progress}%`;
+      });
+
+      if (uploadProgressFill) uploadProgressFill.style.width = '80%';
+      if (uploadProgressText) uploadProgressText.textContent = 'Saving to profile...';
+
       const uid = currentUser.uid || 'student-uid';
-      const storageRef = CampusCareFirebase.storage.ref(`profile-pics/${uid}`);
-      const uploadTask = storageRef.put(file);
 
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress = snapshot.totalBytes > 0
-            ? Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
-            : 0;
-          if (uploadProgressFill) uploadProgressFill.style.width = `${progress}%`;
-          if (uploadProgressText) uploadProgressText.textContent = `Uploading... ${progress}%`;
-        },
-        (uploadError) => {
-          console.error('Firebase Storage upload error:', uploadError);
-          showToast(`Upload failed: ${uploadError.message || 'Please try again.'}`, 'error');
-          resetUploadUI();
-        },
-        async () => {
-          try {
-            // Get Download URL
-            const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+      // Save Base64 to Firestore
+      await CampusCareFirebase.db.collection('users').doc(uid).set({
+        photo: base64,
+        photoURL: base64
+      }, { merge: true });
 
-            // 1. Update Firebase Auth Profile
-            try {
-              if (currentUser.updateProfile) {
-                await currentUser.updateProfile({ photoURL: downloadURL });
-              }
-            } catch (authErr) {
-              console.warn('Could not update Firebase Auth photoURL:', authErr);
-            }
-
-            // 2. Update Firestore User Document
-            await CampusCareFirebase.db.collection('users').doc(uid).set({
-              photo: downloadURL,
-              photoURL: downloadURL
-            }, { merge: true });
-
-            // 3. Update active session cache
-            try {
-              const session = JSON.parse(localStorage.getItem('campusCare_session') || '{}');
-              session.photo = downloadURL;
-              session.photoURL = downloadURL;
-              localStorage.setItem('campusCare_session', JSON.stringify(session));
-            } catch (_) {}
-
-            // 4. Display uploaded photo immediately
-            renderAvatar(downloadURL, studentName, studentEmail);
-
-            // 5. Show success toast
-            showToast('Profile photo uploaded and updated successfully!', 'success');
-          } catch (postUploadErr) {
-            console.error('Post-upload processing error:', postUploadErr);
-            showToast('Photo uploaded, but profile sync failed. Please refresh.', 'error');
-          } finally {
-            resetUploadUI();
-          }
+      // Update Firebase Auth profile
+      try {
+        if (currentUser.updateProfile) {
+          await currentUser.updateProfile({ photoURL: base64 });
         }
-      );
+      } catch (authErr) {
+        console.warn('Could not update Firebase Auth photoURL:', authErr);
+      }
+
+      // Update localStorage session
+      try {
+        const session = JSON.parse(localStorage.getItem('campusCare_session') || '{}');
+        session.photo = base64;
+        session.photoURL = base64;
+        localStorage.setItem('campusCare_session', JSON.stringify(session));
+      } catch (_) { }
+
+      // Show uploaded photo
+      renderAvatar(base64, studentName, studentEmail);
+
+      if (uploadProgressFill) uploadProgressFill.style.width = '100%';
+      if (uploadProgressText) uploadProgressText.textContent = 'Done!';
+
+      showToast('Profile photo updated successfully!', 'success');
+
     } catch (err) {
-      console.error('Photo upload initialization failed:', err);
+      console.error('Photo upload failed:', err);
       showToast(`Upload error: ${err.message || 'Please try again.'}`, 'error');
+    } finally {
       resetUploadUI();
     }
   });
+
+  function convertToBase64(file, onProgress) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onprogress = (e) => {
+        if (e.lengthComputable && onProgress) {
+          const pct = Math.round((e.loaded / e.total) * 70);
+          onProgress(pct);
+        }
+      };
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  }
 
   function resetUploadUI() {
     uploadPhotoBtn.disabled = false;
