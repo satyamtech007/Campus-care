@@ -91,12 +91,16 @@
           <h2 class="choice-title">Student Login</h2>
           <p class="choice-desc">Report lost items, register found items, log campus maintenance issues, and track live
             status updates.</p>
-          <button type="button" class="btn btn-primary choice-btn" id="openStudentLoginBtn">
-            <span>Continue as Student</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
+          <button type="button" class="btn choice-btn interactive-hover-btn" id="openStudentLoginBtn">
+            <span class="ihb-text">Continue as Student</span>
+            <div class="ihb-hover-content">
+              <span>Continue as Student</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </div>
+            <div class="ihb-dot"></div>
           </button>
         </div>
 
@@ -113,12 +117,16 @@
           <h2 class="choice-title">Admin Login</h2>
           <p class="choice-desc">Manage all reports, verify confidential claim details, update issue statuses with
             remarks, and close reports.</p>
-          <button type="button" class="btn btn-accent choice-btn choice-btn-admin" id="openAdminLoginBtn">
-            <span>Continue as Admin</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
+          <button type="button" class="btn choice-btn choice-btn-admin interactive-hover-btn" id="openAdminLoginBtn">
+            <span class="ihb-text">Continue as Admin</span>
+            <div class="ihb-hover-content">
+              <span>Continue as Admin</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </div>
+            <div class="ihb-dot"></div>
           </button>
         </div>
       </div>
@@ -213,14 +221,17 @@
           <!-- Error Alert Inline Box -->
           <div id="loginErrorMsg" class="track-error-inline" style="display: none; margin-bottom: 1.25rem;"></div>
 
-          <button type="submit" id="loginSubmitBtn" class="btn btn-primary"
+          <button type="submit" id="loginSubmitBtn" class="btn btn-primary interactive-hover-btn"
             style="width: 100%; height: 48px; font-size: 1rem;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" y1="12" x2="3" y2="12" />
-            </svg>
-            <span id="submitBtnText">Sign In as Student</span>
+            <span class="ihb-text" id="submitBtnText">Sign In as Student</span>
+            <div class="ihb-hover-content">
+              <span id="submitBtnTextHover">Sign In as Student</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </div>
+            <div class="ihb-dot"></div>
           </button>
         </form>
 

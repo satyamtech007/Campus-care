@@ -310,6 +310,8 @@ function setRole(role) {
     if (formTitleText) formTitleText.textContent = 'Student Login';
     if (formSubtext) formSubtext.textContent = 'Sign in to file and track campus reports';
     if (submitBtnText) submitBtnText.textContent = 'Sign In as Student';
+    const submitBtnTextHover = document.getElementById('submitBtnTextHover');
+    if (submitBtnTextHover) submitBtnTextHover.textContent = 'Sign In as Student';
     if (loginUsernameInput) loginUsernameInput.placeholder = 'you@college.edu';
   } else {
     if (tabAdminBtn) tabAdminBtn.classList.add('active');
@@ -317,6 +319,8 @@ function setRole(role) {
     if (formTitleText) formTitleText.textContent = 'Admin Login';
     if (formSubtext) formSubtext.textContent = 'Sign in to manage and verify campus operations';
     if (submitBtnText) submitBtnText.textContent = 'Sign In as Admin';
+    const submitBtnTextHover = document.getElementById('submitBtnTextHover');
+    if (submitBtnTextHover) submitBtnTextHover.textContent = 'Sign In as Admin';
     if (loginUsernameInput) loginUsernameInput.placeholder = 'admin@college.edu';
   }
 

@@ -177,13 +177,16 @@
 }
 
 /* Reset & Base Setup */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html, body {
+html,
+body {
   overflow-x: hidden;
   width: 100%;
 }
@@ -200,16 +203,40 @@ body {
 }
 
 /* Global Transition for Theme Switching (under 250ms) */
-body, .site-header, .form-card, .info-card, .stat-card, .modal-dialog,
-.admin-table-card, .auth-card, .portal-choice-card, .recent-item-card,
-.report-summary-box, .detail-cell, .result-desc-block, .timeline-remark,
-.not-found-card, .not-found-tips, .site-footer, .nav-link, .btn,
-.btn-theme-toggle, input, select, textarea, .site-nav, .demo-chip, .role-tab,
-.type-tab-btn, .quick-pill, .filter-type-tabs {
+body,
+.site-header,
+.form-card,
+.info-card,
+.stat-card,
+.modal-dialog,
+.admin-table-card,
+.auth-card,
+.portal-choice-card,
+.recent-item-card,
+.report-summary-box,
+.detail-cell,
+.result-desc-block,
+.timeline-remark,
+.not-found-card,
+.not-found-tips,
+.site-footer,
+.nav-link,
+.btn,
+.btn-theme-toggle,
+input,
+select,
+textarea,
+.site-nav,
+.demo-chip,
+.role-tab,
+.type-tab-btn,
+.quick-pill,
+.filter-type-tabs {
   transition: var(--theme-transition);
 }
 
-img, svg {
+img,
+svg {
   max-width: 100%;
   height: auto;
   vertical-align: middle;
@@ -345,10 +372,12 @@ img, svg {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
   }
+
   70% {
     transform: scale(1);
     box-shadow: 0 0 0 7px rgba(59, 130, 246, 0);
   }
+
   100% {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
@@ -1042,6 +1071,7 @@ textarea {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1277,6 +1307,7 @@ html[data-theme="dark"] .theme-icon-moon {
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1436,6 +1467,7 @@ html[data-theme="dark"] .theme-icon-moon {
   .track-input-group {
     flex-direction: column;
   }
+
   .btn-track {
     width: 100%;
   }
@@ -1540,6 +1572,7 @@ html[data-theme="dark"] .theme-icon-moon {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1652,10 +1685,12 @@ html[data-theme="dark"] .theme-icon-moon {
   .result-details-grid {
     grid-template-columns: 1fr;
   }
+
   .status-card-header {
     flex-direction: column;
     align-items: flex-start;
   }
+
   .current-status-display {
     align-items: flex-start;
     text-align: left;
@@ -3020,6 +3055,154 @@ html[data-theme="dark"] .theme-icon-moon {
   box-shadow: 0 6px 18px rgba(245, 158, 11, 0.42);
 }
 
+/* ==========================================================================
+   Interactive Hover Button (Tailwind / shadcn style effect for Login Dashboard)
+   ========================================================================== */
+.interactive-hover-btn {
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: 9999px !important;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.75rem 1.25rem;
+}
+
+.interactive-hover-btn .ihb-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(4px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
+  z-index: 1;
+  position: relative;
+  pointer-events: none;
+}
+
+.interactive-hover-btn:hover .ihb-text {
+  transform: translateX(48px);
+  opacity: 0;
+}
+
+.interactive-hover-btn .ihb-hover-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  transform: translateX(48px);
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #FFFFFF;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.interactive-hover-btn:hover .ihb-hover-content {
+  transform: translateX(-4px);
+  opacity: 1;
+}
+
+.interactive-hover-btn .ihb-dot {
+  position: absolute;
+  left: 20%;
+  top: 40%;
+  height: 8px;
+  width: 8px;
+  transform: scale(1);
+  border-radius: 0.5rem;
+  background-color: var(--color-primary, #4F46E5);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.interactive-hover-btn:hover .ihb-dot {
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  transform: scale(2.2);
+  border-radius: 9999px;
+  background-color: #4338CA;
+}
+
+/* Choice card student variant */
+#openStudentLoginBtn.interactive-hover-btn {
+  background: var(--card-bg, #FFFFFF);
+  color: var(--color-primary, #4F46E5);
+  border: 1.5px solid #4F46E5;
+}
+
+#openStudentLoginBtn.interactive-hover-btn:hover {
+  color: #FFFFFF;
+  background: #4F46E5;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+}
+
+#openStudentLoginBtn.interactive-hover-btn .ihb-dot {
+  background-color: #4F46E5;
+}
+
+#openStudentLoginBtn.interactive-hover-btn:hover .ihb-dot {
+  background-color: #4338CA;
+}
+
+/* Choice card admin variant */
+#openAdminLoginBtn.interactive-hover-btn {
+  background: var(--card-bg, #FFFFFF);
+  color: #B45309;
+  border: 1.5px solid #F59E0B;
+}
+
+#openAdminLoginBtn.interactive-hover-btn .ihb-hover-content {
+  color: #1E1B4B;
+  font-weight: 700;
+}
+
+#openAdminLoginBtn.interactive-hover-btn .ihb-dot {
+  background-color: #F59E0B;
+}
+
+#openAdminLoginBtn.interactive-hover-btn:hover .ihb-dot {
+  background-color: #D97706;
+}
+
+#openAdminLoginBtn.interactive-hover-btn:hover {
+  color: #1E1B4B;
+  background: #F59E0B;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+}
+
+/* Form submit button variant */
+#loginSubmitBtn.interactive-hover-btn {
+  background: var(--color-primary, #4F46E5);
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+}
+
+#loginSubmitBtn.interactive-hover-btn .ihb-dot {
+  background-color: #312E81;
+}
+
+#loginSubmitBtn.interactive-hover-btn:hover .ihb-dot {
+  background-color: #3730A3;
+}
+
+#loginSubmitBtn.interactive-hover-btn:hover {
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5);
+  transform: translateY(-1px);
+}
+
 .btn-back-selection {
   background: transparent;
   border: none;
@@ -3401,9 +3584,3 @@ html[data-theme="dark"] .theme-icon-moon {
 .spin {
   animation: spin 0.8s linear infinite;
 }
-
-
-
-
-
-
