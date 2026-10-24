@@ -31,14 +31,14 @@ const refreshBtn = document.getElementById('refreshBtn');
   };
 
   const origGetElementById = document.getElementById.bind(document);
-  document.getElementById = function(id) {
+  document.getElementById = function (id) {
     let elem = origGetElementById(id);
     if (!elem && idMap[id]) elem = origGetElementById(idMap[id]);
     return elem;
   };
 
   const origQuerySelector = document.querySelector.bind(document);
-  document.querySelector = function(selector) {
+  document.querySelector = function (selector) {
     let elem = origQuerySelector(selector);
     if (!elem && typeof selector === 'string' && selector.startsWith('#')) {
       const id = selector.slice(1);
@@ -140,7 +140,7 @@ function initThemeToggle() {
     document.documentElement.setAttribute('data-theme', nextTheme);
     try {
       localStorage.setItem('campusCare_theme', nextTheme);
-    } catch (err) {}
+    } catch (err) { }
     updateToggleUI(nextTheme);
   });
 }
@@ -477,7 +477,7 @@ async function fetchUserByIdentifier(identifier) {
             return name;
           }
         }
-      } catch (_) {}
+      } catch (_) { }
 
       // 2. Query where studentID == identifier (uppercase D)
       try {
@@ -491,7 +491,7 @@ async function fetchUserByIdentifier(identifier) {
             return name;
           }
         }
-      } catch (_) {}
+      } catch (_) { }
 
       // 3. Query where studentId == identifier (lowercase d)
       try {
@@ -505,7 +505,7 @@ async function fetchUserByIdentifier(identifier) {
             return name;
           }
         }
-      } catch (_) {}
+      } catch (_) { }
     }
   } catch (err) {
     console.warn(`Could not lookup user for identifier ${idStr}:`, err);
@@ -547,9 +547,9 @@ function getStudentNameForReport(report) {
 
   // If report has a genuine non-anonymous name, use it
   if (report.studentName &&
-      report.studentName !== 'Anonymous Student' &&
-      report.studentName !== 'Anonymous' &&
-      report.studentName.trim() !== '') {
+    report.studentName !== 'Anonymous Student' &&
+    report.studentName !== 'Anonymous' &&
+    report.studentName.trim() !== '') {
     return report.studentName.trim();
   }
 
@@ -858,9 +858,14 @@ function renderTable() {
         <td>
           <span class="type-pill ${typeClass}">${typeLabel}</span>
         </td>
-        <td>
+               <td>
           <div class="table-item-title">${escapeHtml(report.itemName || report.category)}</div>
           <span class="table-cat-sub">${escapeHtml(report.category)}</span>
+          ${report.photoBase64 ? `<img src="${report.photoBase64}"
+            style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;
+                   margin-top:0.5rem;border:1px solid var(--border-color);cursor:pointer;"
+            onclick="window.open('${report.photoBase64}','_blank')"
+            title="Click to view full image" alt="Issue Photo">` : ''}
         </td>
         <td>
           <div class="table-meta-text">Location: ${escapeHtml(report.location || 'N/A')}</div>
@@ -956,20 +961,20 @@ function attachFilterListeners() {
     }
   });
 
-/**
- * Logout Confirmation Modal Dialog
- */
-function showLogoutConfirmation({ title = 'Confirm Logout', message = 'Are you sure you want to log out?', onConfirm }) {
-  let modal = document.getElementById('ccLogoutModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'ccLogoutModal';
-    modal.className = 'modal-overlay';
-    modal.setAttribute('aria-hidden', 'true');
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-labelledby', 'ccLogoutTitle');
-    modal.innerHTML = `
+  /**
+   * Logout Confirmation Modal Dialog
+   */
+  function showLogoutConfirmation({ title = 'Confirm Logout', message = 'Are you sure you want to log out?', onConfirm }) {
+    let modal = document.getElementById('ccLogoutModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'ccLogoutModal';
+      modal.className = 'modal-overlay';
+      modal.setAttribute('aria-hidden', 'true');
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-labelledby', 'ccLogoutTitle');
+      modal.innerHTML = `
       <div class="modal-dialog" style="max-width: 440px; text-align: center; padding: 2rem 1.75rem;">
         <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--color-danger-soft, #fef2f2); border: 2px solid var(--color-danger-border, #fecaca); color: var(--color-danger, #ef4444); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -990,63 +995,63 @@ function showLogoutConfirmation({ title = 'Confirm Logout', message = 'Are you s
         </div>
       </div>
     `;
-    document.body.appendChild(modal);
-  }
-
-  const titleElem = modal.querySelector('#ccLogoutTitle');
-  const descElem = modal.querySelector('#ccLogoutDesc');
-  const cancelBtn = modal.querySelector('#ccCancelLogoutBtn');
-  const confirmBtn = modal.querySelector('#ccConfirmLogoutBtn');
-
-  titleElem.textContent = title;
-  descElem.textContent = message;
-  confirmBtn.disabled = false;
-  confirmBtn.innerHTML = '<span>Log Out</span>';
-  cancelBtn.disabled = false;
-
-  function closeModal() {
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    document.removeEventListener('keydown', onKeyDown);
-  }
-
-  function onKeyDown(e) {
-    if (e.key === 'Escape') {
-      closeModal();
+      document.body.appendChild(modal);
     }
-  }
 
-  cancelBtn.onclick = () => {
-    closeModal();
-  };
+    const titleElem = modal.querySelector('#ccLogoutTitle');
+    const descElem = modal.querySelector('#ccLogoutDesc');
+    const cancelBtn = modal.querySelector('#ccCancelLogoutBtn');
+    const confirmBtn = modal.querySelector('#ccConfirmLogoutBtn');
 
-  modal.onclick = (e) => {
-    if (e.target === modal) {
-      closeModal();
+    titleElem.textContent = title;
+    descElem.textContent = message;
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = '<span>Log Out</span>';
+    cancelBtn.disabled = false;
+
+    function closeModal() {
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', onKeyDown);
     }
-  };
 
-  confirmBtn.onclick = async () => {
-    confirmBtn.disabled = true;
-    confirmBtn.innerHTML = '<span>Logging out...</span>';
-    cancelBtn.disabled = true;
-    if (typeof onConfirm === 'function') {
-      try {
-        await onConfirm();
-      } catch (err) {
-        console.error('Logout error:', err);
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = '<span>Log Out</span>';
-        cancelBtn.disabled = false;
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        closeModal();
       }
     }
-  };
 
-  document.addEventListener('keydown', onKeyDown);
-  modal.classList.add('active');
-  modal.setAttribute('aria-hidden', 'false');
-  cancelBtn.focus();
-}
+    cancelBtn.onclick = () => {
+      closeModal();
+    };
+
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    };
+
+    confirmBtn.onclick = async () => {
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span>Logging out...</span>';
+      cancelBtn.disabled = true;
+      if (typeof onConfirm === 'function') {
+        try {
+          await onConfirm();
+        } catch (err) {
+          console.error('Logout error:', err);
+          confirmBtn.disabled = false;
+          confirmBtn.innerHTML = '<span>Log Out</span>';
+          cancelBtn.disabled = false;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    cancelBtn.focus();
+  }
 
   if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
@@ -1075,7 +1080,7 @@ function showLogoutConfirmation({ title = 'Confirm Logout', message = 'Are you s
 /**
  * Status Update Modal Workflow
  */
-window.openStatusModal = function(reportId) {
+window.openStatusModal = function (reportId) {
   const report = allReports.find(r => r.id === reportId);
   if (!report) return;
 
@@ -1086,7 +1091,7 @@ window.openStatusModal = function(reportId) {
   const statusPhoneElem = document.getElementById('statusModalPhone');
   if (statusStudentElem) statusStudentElem.textContent = getStudentNameForReport(report);
   if (statusPhoneElem) statusPhoneElem.textContent = report.phone || (report.contact && report.contact !== 'Not provided' ? report.contact : null) || 'Not provided';
-  
+
   const statusKeptWrapper = document.getElementById('statusModalKeptAtWrapper');
   const statusKeptElem = document.getElementById('statusModalKeptAt');
   if (statusKeptWrapper && statusKeptElem) {
@@ -1160,7 +1165,7 @@ statusUpdateForm.addEventListener('submit', async (e) => {
 /**
  * Claim Verification Modal Workflow (Found items)
  */
-window.openVerifyClaimModal = function(reportId) {
+window.openVerifyClaimModal = function (reportId) {
   const report = allReports.find(r => r.id === reportId);
   if (!report) return;
 
@@ -1291,7 +1296,7 @@ btnRejectClaim.addEventListener('click', async () => {
 /**
  * Audit History Modal Workflow
  */
-window.openHistoryModal = function(reportId) {
+window.openHistoryModal = function (reportId) {
   const report = allReports.find(r => r.id === reportId);
   if (!report) return;
 

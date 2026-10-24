@@ -5,7 +5,45 @@
 
 // Storage Keys
 const STORAGE_KEY_REPORTS = 'campusCare_reports';
+// ── Upvote Helpers ─────────────────────────────────────────────
+const STORAGE_KEY_UPVOTES = 'campusCare_upvotes';       // { reportId: count }
+const STORAGE_KEY_MY_UPVOTES = 'campusCare_my_upvotes'; // [reportId, ...]
 
+function getUpvoteCount(reportId) {
+  try {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY_UPVOTES) || '{}');
+    return data[reportId] || 0;
+  } catch { return 0; }
+}
+
+function hasUserUpvoted(reportId) {
+  try {
+    const mine = JSON.parse(localStorage.getItem(STORAGE_KEY_MY_UPVOTES) || '[]');
+    return mine.includes(reportId);
+  } catch { return false; }
+}
+
+function handleUpvote(reportId) {
+  if (hasUserUpvoted(reportId)) return; // already voted
+
+  try {
+    // Increment global count
+    const counts = JSON.parse(localStorage.getItem(STORAGE_KEY_UPVOTES) || '{}');
+    counts[reportId] = (counts[reportId] || 0) + 1;
+    localStorage.setItem(STORAGE_KEY_UPVOTES, JSON.stringify(counts));
+
+    // Mark this user as having upvoted
+    const mine = JSON.parse(localStorage.getItem(STORAGE_KEY_MY_UPVOTES) || '[]');
+    mine.push(reportId);
+    localStorage.setItem(STORAGE_KEY_MY_UPVOTES, JSON.stringify(mine));
+
+    // Re-render cards to reflect new count
+    renderRecentIssues();
+    showToast('Your vote has been recorded!', 'success');
+  } catch (err) {
+    console.error('Upvote error:', err);
+  }
+}
 // Category to Department Mapping
 const DEPARTMENT_MAP = {
   'Electricity': 'Electrical Maintenance & Power Division',
@@ -25,7 +63,88 @@ if (navToggle && siteNav) {
     navToggle.setAttribute('aria-expanded', isOpen);
   });
 }
+// ── Photo Upload Handling ──────────────────────────────────────
+let issuePhotoBase64 = null;
 
+function initPhotoUpload() {
+  const dropZone = document.getElementById('photoDropZone');
+  const fileInput = document.getElementById('issuePhoto');
+  const placeholder = document.getElementById('photoPlaceholder');
+  const previewWrap = document.getElementById('photoPreviewWrap');
+  const previewImg = document.getElementById('photoPreview');
+  const removeBtn = document.getElementById('removePhotoBtn');
+  const errEl = document.getElementById('err-photo');
+
+  if (!dropZone || !fileInput) return;
+
+  // Click on drop zone opens file picker
+  dropZone.addEventListener('click', (e) => {
+    if (e.target === removeBtn || removeBtn.contains(e.target)) return;
+    fileInput.click();
+  });
+
+  // Drag & Drop support
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'var(--color-primary)';
+  });
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.style.borderColor = 'var(--border-color)';
+  });
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'var(--border-color)';
+    const file = e.dataTransfer.files[0];
+    if (file) handlePhotoFile(file);
+  });
+
+  // Normal file input change
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) handlePhotoFile(fileInput.files[0]);
+  });
+
+  // Remove photo
+  removeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clearPhoto();
+  });
+
+  function handlePhotoFile(file) {
+    errEl.textContent = '';
+
+    // Validate type
+    if (!file.type.startsWith('image/')) {
+      errEl.textContent = 'Only image files are allowed.';
+      return;
+    }
+    // Validate size (1MB max)
+    if (file.size > 1 * 1024 * 1024) {
+      errEl.textContent = 'Photo must be under 1MB.';
+      clearPhoto();
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      issuePhotoBase64 = ev.target.result; // data:image/...;base64,...
+      previewImg.src = issuePhotoBase64;
+      placeholder.style.display = 'none';
+      previewWrap.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPhoto() {
+    issuePhotoBase64 = null;
+    fileInput.value = '';
+    previewImg.src = '';
+    previewWrap.style.display = 'none';
+    placeholder.style.display = 'block';
+  }
+}
+
+// Call on DOM ready
+document.addEventListener('DOMContentLoaded', initPhotoUpload);
 // User Logout handler with confirmation popup
 function initLogoutModal() {
   const userLogoutBtn = document.getElementById('userLogoutBtn');
@@ -229,7 +348,7 @@ function initThemeToggle() {
     document.documentElement.setAttribute('data-theme', nextTheme);
     try {
       localStorage.setItem('campusCare_theme', nextTheme);
-    } catch (err) {}
+    } catch (err) { }
     updateToggleUI(nextTheme);
   });
 }
@@ -495,7 +614,7 @@ async function getAuthenticatedStudent() {
   try {
     const raw = sessionStorage.getItem('campusCare_session') || localStorage.getItem('campusCare_session');
     if (raw) session = JSON.parse(raw);
-  } catch (_) {}
+  } catch (_) { }
 
   const uid = (user && user.uid) || (session && session.uid) || null;
   const studentID = (profile && (profile.studentID || profile.studentId)) || (session && (session.studentID || session.studentId)) || uid || '';
@@ -533,7 +652,7 @@ async function saveReport(report) {
   try {
     const existing = JSON.parse(localStorage.getItem(STORAGE_KEY_REPORTS) || '[]');
     localStorage.setItem(STORAGE_KEY_REPORTS, JSON.stringify([report, ...existing.filter(i => i.id !== report.id)]));
-  } catch (_) {}
+  } catch (_) { }
 
   return report;
 }
@@ -671,7 +790,7 @@ if (form) {
       const uniqueId = generateUniqueIssueId();
       const selectedCat = categorySelect.value;
       const assignedDepartment = DEPARTMENT_MAP[selectedCat] || 'Campus Facilities & Administration';
-      
+
       const createdTimestamp = new Date().toISOString();
       const todayDate = new Date().toISOString().split('T')[0];
 
@@ -714,6 +833,12 @@ if (form) {
       form.reset();
       if (deptPreview) deptPreview.style.display = 'none';
       clearErrors();
+      // Reset photo state after submit
+      issuePhotoBase64 = null;
+      const pw = document.getElementById('photoPreviewWrap');
+      const ph = document.getElementById('photoPlaceholder');
+      if (pw) pw.style.display = 'none';
+      if (ph) ph.style.display = 'block';
 
       // 5. Update UI, display confirmation modal and success toast
       showSuccessModal(newReport);
@@ -819,6 +944,9 @@ function renderRecentIssues() {
   recentIssuesList.innerHTML = issueReports.map(report => {
     const norm = normalizeStatus(report.status);
     const badgeCls = getStatusBadgeClass(norm);
+    const upvotes = getUpvoteCount(report.id);
+    const hasUpvoted = hasUserUpvoted(report.id);
+
     return `
       <div class="recent-item-card">
         <div class="recent-card-top">
@@ -832,6 +960,38 @@ function renderRecentIssues() {
         <div class="recent-meta">
           <span>Location: ${escapeHtml(report.location)}</span>
           <span>Date: ${escapeHtml(report.date)}</span>
+        </div>
+        <div class="upvote-row" style="margin-top: 0.65rem; display: flex; align-items: center; gap: 0.5rem;">
+          <button
+            type="button"
+            class="btn-upvote ${hasUpvoted ? 'upvoted' : ''}"
+            onclick="handleUpvote('${escapeHtml(report.id)}')"
+            title="${hasUpvoted ? 'You already upvoted this' : 'Me too! I have the same issue'}"
+            style="
+              display: inline-flex;
+              align-items: center;
+              gap: 0.35rem;
+              padding: 0.3rem 0.75rem;
+              border-radius: 20px;
+              border: 1.5px solid ${hasUpvoted ? 'var(--color-primary)' : 'var(--border-color)'};
+              background: ${hasUpvoted ? 'var(--color-primary-soft, #eff6ff)' : 'transparent'};
+              color: ${hasUpvoted ? 'var(--color-primary)' : 'var(--text-muted)'};
+              font-size: 0.82rem;
+              font-weight: 600;
+              cursor: ${hasUpvoted ? 'default' : 'pointer'};
+              transition: all 0.2s;
+            "
+            ${hasUpvoted ? 'disabled' : ''}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="${hasUpvoted ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2.5">
+              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+              <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+            </svg>
+            <span>${hasUpvoted ? 'Upvoted' : 'Me Too'}</span>
+          </button>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">
+            <strong style="color: var(--text-main);">${upvotes}</strong> ${upvotes === 1 ? 'person has' : 'people have'} this issue
+          </span>
         </div>
       </div>
     `;
@@ -879,7 +1039,7 @@ function showToast(message, type = 'info') {
   if (!toastContainer) return;
   const toast = document.createElement('div');
   toast.className = 'toast';
-  
+
   if (type === 'error') {
     toast.style.background = '#b91c1c';
     toast.style.color = '#ffffff';
@@ -894,7 +1054,7 @@ function showToast(message, type = 'info') {
 
   toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
   toastContainer.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateY(10px)';
